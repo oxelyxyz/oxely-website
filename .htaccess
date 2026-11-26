@@ -1,0 +1,16 @@
+# Clean URLs for oxely.xyz (Apache / cPanel)
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# /app  -> app.html  (old /app.html and /app/ redirect here)
+RewriteCond %{THE_REQUEST} \s/+app\.html[\s?] [NC]
+RewriteRule ^app\.html$ /app [R=301,L]
+RewriteRule ^app/$ /app [R=301,L]
+RewriteRule ^app$ app.html [L]
+
+# /docs -> docs.html
+RewriteCond %{THE_REQUEST} \s/+docs\.html[\s?] [NC]
+RewriteRule ^docs\.html$ /docs [R=301,L]
+RewriteRule ^docs/$ /docs [R=301,L]
+RewriteRule ^docs$ docs.html [L]
+</IfModule>
