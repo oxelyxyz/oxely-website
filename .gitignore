@@ -1,0 +1,13 @@
+# Never commit sign-ups or server-only files
+contact-messages/
+*.jsonl
+*.bak
+php.ini
+.user.ini
+error_log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
