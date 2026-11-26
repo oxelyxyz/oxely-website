@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oxely documentation</title>
+<meta name="description" content="How Oxely vaults work, what they hold, how deposits and withdrawals are planned to work, and the risks involved.">
+<meta name="theme-color" content="#0b0b0a">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b0a;--bg2:#111110;--panel:#151513;--panel2:#1b1a17;--cream:#f4ead2;--text:#e6dfcd;--muted:#8d877b;--dim:#57534b;
+  --line:rgba(244,234,210,.08);--line2:rgba(244,234,210,.15);--gold:#e2bf7e;--green:#9fcf8a;
+  --sans:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);--gut:clamp(16px,3vw,32px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden;background:var(--bg)}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+button{font:inherit;color:inherit}
+::selection{background:var(--cream);color:var(--bg)}
+
+.progress{position:fixed;left:0;top:0;height:2px;width:100%;z-index:70;background:linear-gradient(90deg,var(--gold),#f4e3b8);transform:scaleX(0);transform-origin:left}
+
+/* header */
+.header{position:fixed;top:14px;left:0;right:0;z-index:50;padding:0 var(--gut);display:flex;justify-content:center;align-items:center;gap:10px;pointer-events:none}
+.nav{pointer-events:auto;position:relative;height:54px;display:flex;align-items:center;gap:4px;padding:0 7px 0 18px;border-radius:13px;
+  background:rgba(17,17,16,.7);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 12px 40px -18px rgba(0,0,0,.9)}
+.nav::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(110deg,rgba(226,191,126,.55),rgba(244,234,210,.12) 30%,rgba(244,234,210,.06) 60%,rgba(226,191,126,.4));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;color:var(--cream);margin-right:22px}
+.brand svg{width:22px;height:auto}
+.links{display:flex}
+.links a{font-size:13.5px;color:var(--muted);padding:8px 11px;border-radius:7px;transition:color .2s}
+.links a:hover,.links a.on{color:var(--cream)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;font-size:13.5px;font-weight:500;white-space:nowrap;border:1px solid transparent;cursor:pointer;transition:background .2s,border-color .2s}
+.btn-cream{background:var(--cream);color:#121110}.btn-cream:hover{background:#fff}
+.btn-ghost{background:transparent;border-color:var(--line2);color:var(--text)}.btn-ghost:hover{background:rgba(244,234,210,.06)}
+.nav .btn{margin-left:14px}
+.badge{pointer-events:auto;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 12px;border-radius:999px;background:rgba(17,17,16,.7);border:1px solid var(--line2);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);font-size:12.5px;color:var(--muted);white-space:nowrap}
+.badge b{font-weight:500;color:var(--cream)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.menu{display:none;height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--line2);background:none;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-left:auto}
+.menu i{width:14px;height:1.5px;background:currentColor;box-shadow:0 -4px 0 currentColor,0 4px 0 currentColor}
+
+/* layout */
+.layout{max-width:1200px;margin:0 auto;padding:110px var(--gut) 0;display:grid;grid-template-columns:240px minmax(0,1fr);gap:clamp(28px,5vw,64px)}
+.side{position:sticky;top:100px;align-self:start;max-height:calc(100vh - 120px);overflow:auto;padding-bottom:30px}
+.search{display:flex;align-items:center;gap:8px;height:38px;padding:0 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);margin-bottom:22px}
+.search svg{width:14px;color:var(--dim);flex:none}
+.search input{flex:1;min-width:0;border:0;background:none;outline:none;font:inherit;font-size:13px;color:var(--cream)}
+.search input::placeholder{color:var(--dim)}
+.search kbd{font-family:var(--mono);font-size:10.5px;color:var(--dim);border:1px solid var(--line2);border-radius:5px;padding:1px 5px}
+.grp{margin-bottom:22px}
+.grp h6{font-family:var(--mono);font-size:10.5px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 8px 10px}
+.side a{position:relative;display:block;padding:8px 10px;border-radius:8px;font-size:13.5px;line-height:1.35;color:var(--muted);transition:color .2s,background .2s}
+.side a:hover{color:var(--cream)}
+.side a.on{color:var(--cream);background:var(--panel);box-shadow:inset 0 0 0 1px var(--line2)}
+.side a.on::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:2px;border-radius:2px;background:var(--gold)}
+.side a.hide{display:none}
+.side .none{display:none;font-size:13px;color:var(--dim);padding:0 10px}
+
+.scrim{display:none}
+
+/* content */
+main{min-width:0;padding-bottom:40px}
+.page{display:none}
+.page.on{display:block;animation:pagein .55s var(--ease)}
+@keyframes pagein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.crumb{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+h1{font-weight:400;font-size:clamp(34px,4.6vw,52px);line-height:1.04;letter-spacing:-.04em;color:var(--cream)}
+.intro{margin-top:14px;max-width:640px;font-size:17px;line-height:1.6;color:var(--muted)}
+h2{font-weight:500;font-size:22px;letter-spacing:-.015em;color:var(--cream);margin:46px 0 12px;scroll-margin-top:100px}
+h3{font-weight:500;font-size:17px;color:var(--cream);margin:26px 0 8px}
+p,li{font-size:15.5px;line-height:1.7;color:var(--text)}
+.page p+p{margin-top:12px}
+ul.list,ol.list{margin:12px 0 0 20px;display:grid;gap:8px}
+ul.list li::marker{color:var(--gold)}
+ol.list li::marker{color:var(--gold);font-family:var(--mono);font-size:13px}
+code{font-family:var(--mono);font-size:.86em;background:rgba(244,234,210,.07);border-radius:5px;padding:2px 6px;color:var(--cream)}
+a.inl{color:var(--cream);text-decoration:underline;text-decoration-color:rgba(226,191,126,.5);text-underline-offset:3px}
+
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+.card{position:relative;display:block;padding:18px 18px 20px;border-radius:14px;border:1px solid var(--line);background:var(--panel);overflow:hidden;transition:border-color .3s,transform .4s var(--ease),background .3s}
+.card:hover{border-color:var(--line2);background:var(--panel2);transform:translateY(-2px)}
+.card b{display:flex;justify-content:space-between;align-items:center;font-weight:500;font-size:15.5px;color:var(--cream);margin-bottom:6px}
+.card b span{color:var(--dim);transition:transform .3s var(--ease),color .3s}
+.card:hover b span{transform:translateX(4px);color:var(--gold)}
+.card small{display:block;font-size:13.5px;line-height:1.5;color:var(--muted)}
+.card .tag{display:inline-block;margin-top:12px;font-family:var(--mono);font-size:10.5px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:2px 8px}
+
+.note{display:flex;gap:12px;margin:22px 0;padding:14px 16px;border-radius:12px;border:1px solid rgba(226,191,126,.28);background:rgba(226,191,126,.06)}
+.note svg{width:18px;height:18px;flex:none;color:var(--gold);margin-top:3px}
+.note p{font-size:14.5px;line-height:1.6;margin:0!important}
+.note.warn{border-color:rgba(224,138,104,.35);background:rgba(224,138,104,.07)}
+.note.warn svg{color:#e08a68}
+
+.kv{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.kv div{display:grid;grid-template-columns:200px 1fr;gap:12px;padding:11px 14px;font-size:14px}
+.kv div+div{border-top:1px solid var(--line)}
+.kv span{color:var(--muted)}.kv b{font-weight:500;color:var(--cream)}
+
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.flow div{position:relative;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--panel)}
+.flow div::after{content:"→";position:absolute;right:-9px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gold);z-index:1}
+.flow div:last-child::after{display:none}
+.flow i{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--gold)}
+.flow b{display:block;font-weight:500;font-size:14px;color:var(--cream);margin:6px 0 4px}
+.flow small{font-size:12.5px;line-height:1.45;color:var(--muted)}
+
+.formula{margin-top:14px;padding:16px 18px;border-radius:12px;border:1px solid var(--line2);background:#0f0f0d;font-family:var(--mono);font-size:14px;color:var(--cream);overflow-x:auto}
+
+.risk{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:14px}
+.risk div{display:grid;grid-template-columns:170px 1fr 1fr;gap:14px;padding:13px 14px;font-size:13.5px;line-height:1.5}
+.risk div:first-child{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);background:var(--bg2)}
+.risk div+div{border-top:1px solid var(--line)}
+.risk b{font-weight:500;color:var(--cream)}
+.risk span{color:var(--muted)}
+
+details{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin-top:10px;overflow:hidden}
+summary{list-style:none;cursor:pointer;padding:15px 16px;font-size:15px;font-weight:500;color:var(--cream);display:flex;justify-content:space-between;gap:12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary i{flex:none;width:18px;height:18px;position:relative;transition:transform .35s var(--ease)}
+summary i::before,summary i::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:1.5px;background:var(--gold);transform:translate(-50%,-50%)}
+summary i::after{transform:translate(-50%,-50%) rotate(90deg)}
+details[open] summary i{transform:rotate(45deg)}
+details .a{padding:0 16px 16px;font-size:14.5px;line-height:1.65;color:var(--muted)}
+
+.pager{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:56px;padding-top:24px;border-top:1px solid var(--line)}
+.pager a{display:block;padding:14px 16px;border-radius:12px;border:1px solid var(--line);transition:border-color .3s,background .3s}
+.pager a:hover{border-color:var(--line2);background:var(--panel)}
+.pager small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.pager b{display:block;font-weight:500;font-size:15px;color:var(--cream);margin-top:4px}
+.pager .nx{text-align:right;grid-column:2}
+.updated{margin-top:18px;font-size:12.5px;color:var(--dim)}
+
+footer{margin-top:60px;border-top:1px solid var(--line);padding:30px 0 36px}
+footer .in{max-width:1200px;margin:0 auto;padding:0 var(--gut);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+footer .l{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+footer nav{display:flex;gap:18px;font-size:13px;color:var(--muted)}
+footer nav a:hover{color:var(--cream)}
+footer .c{max-width:1200px;margin:16px auto 0;padding:0 var(--gut);font-size:12.5px;color:var(--dim)}
+
+@media (max-width:1100px){.badge{display:none}}
+@media (max-width:900px){
+  .links,.nav .btn{display:none}
+  .nav{width:100%}
+  .menu{display:inline-flex}
+  .layout{grid-template-columns:1fr;padding-top:96px}
+  .side{position:fixed;top:0;left:0;bottom:0;z-index:60;width:min(300px,86vw);max-height:none;padding:22px 16px 30px;background:#10100f;border-right:1px solid var(--line2);transform:translateX(-102%);transition:transform .45s var(--ease)}
+  .side.open{transform:none}
+  .scrim{display:block;position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .3s}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .flow{grid-template-columns:1fr 1fr}
+  .flow div:nth-child(2)::after{display:none}
+}
+@media (max-width:620px){
+  .cards,.pager{grid-template-columns:1fr}
+  .pager .nx{grid-column:1}
+  .kv div{grid-template-columns:1fr;gap:2px}
+  .risk div{grid-template-columns:1fr;gap:4px}
+  .risk div:first-child{display:none}
+  .flow{grid-template-columns:1fr}
+  .flow div::after{display:none}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="oxm" maskUnits="userSpaceOnUse" x="6" y="6" width="90" height="80">
+      <path fill="#fff" d="M37 22C42 15 47 12 52 12C58 12 63 15 66 20L88 55C94 64 91 79 76 79L26 79C14 79 9 67 15 57Z"/>
+      <ellipse cx="50" cy="56" rx="23" ry="23.3" fill="#000"/>
+      <path fill="#000" d="M50 56L53 33L68 18L100 0L100 22L72 57Z"/>
+      <circle cx="50" cy="56" r="12.5" fill="#fff"/>
+    </mask>
+    <symbol id="ox" viewBox="6 6 90 80"><rect x="6" y="6" width="90" height="80" fill="currentColor" mask="url(#oxm)"/></symbol>
+    <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="progress" id="progress"></div>
+
+<header class="header">
+  <nav class="nav" aria-label="Main">
+    <a href="/" class="brand" aria-label="Oxely home"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely</a>
+    <div class="links">
+      <a href="/#products">Vaults</a>
+      <a href="/#how">How it works</a>
+      <a href="/#security">Security</a>
+      <a href="/app">App</a>
+      <a href="/docs" class="on">Docs</a>
+    </div>
+    <a href="/dashboard.html" class="btn btn-cream">Open app</a>
+    <button class="menu" id="menu" aria-label="Open docs menu" aria-expanded="false"><i></i>Docs menu</button>
+  </nav>
+  <a href="/app" class="badge"><span class="dot"></span>Building now <b>Oxely App</b> ↗</a>
+</header>
+
+<div class="layout">
+  <aside class="side" id="side" aria-label="Documentation">
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Search docs" autocomplete="off"><kbd>/</kbd></label>
+    <div class="grp"><h6>Start here</h6>
+      <a href="#overview" data-p="overview">Overview</a>
+      <a href="#access" data-p="access">Access, deposits and withdrawals</a>
+    </div>
+    <div class="grp"><h6>Vaults</h6>
+      <a href="#stable" data-p="stable">Oxely Stable</a>
+      <a href="#hedge" data-p="hedge">Oxely Hedge</a>
+      <a href="#custom" data-p="custom">Oxely Custom</a>
+    </div>
+    <div class="grp"><h6>Reference</h6>
+      <a href="#value" data-p="value">Share value and transparency</a>
+      <a href="#risks" data-p="risks">Risks and controls</a>
+      <a href="#faq" data-p="faq">FAQ</a>
+    </div>
+    <p class="none" id="none">No pages match.</p>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main id="main">
+
+    <!-- OVERVIEW -->
+    <article class="page" id="p-overview" data-title="Overview">
+      <div class="crumb">Start here</div>
+      <h1>Oxely documentation</h1>
+      <p class="intro">What Oxely vaults hold, how they plan to earn, how deposits and withdrawals will work, and what can go wrong. Written in plain language.</p>
+      <div class="note"><svg><use href="#info"/></svg><p>Oxely is in development. No vault is live and no deposits are accepted. These docs describe how the vaults are designed to work, and will be updated before launch.</p></div>
+
+      <h2>Vaults</h2>
+      <p>Each vault follows one written strategy with set limits. You hold vault shares in your own wallet, and positions can be checked on-chain.</p>
+      <div class="cards">
+        <a class="card" href="#stable"><b>Oxely Stable <span>→</span></b><small>A stablecoin vault spread across lending markets, with a hard limit per venue.</small><span class="tag">In development</span></a>
+        <a class="card" href="#hedge"><b>Oxely Hedge <span>→</span></b><small>A market-neutral vault that aims to earn from funding while keeping price exposure near zero.</small><span class="tag">In research</span></a>
+        <a class="card" href="#custom"><b>Oxely Custom <span>→</span></b><small>Vaults built around a team's own rules, for DAOs, treasuries and funds.</small><span class="tag">By request</span></a>
+      </div>
+
+      <h2>Before you deposit</h2>
+      <div class="cards">
+        <a class="card" href="#access"><b>Access, deposits and withdrawals <span>→</span></b><small>Who can use Oxely, what you sign, and how money moves in and out.</small></a>
+        <a class="card" href="#value"><b>Share value and transparency <span>→</span></b><small>How share value is worked out, and what you can check on-chain yourself.</small></a>
+        <a class="card" href="#risks"><b>Risks and controls <span>→</span></b><small>The main ways you could lose money, and what limits are in place.</small></a>
+        <a class="card" href="#faq"><b>FAQ <span>→</span></b><small>Short answers to the questions people ask most.</small></a>
+      </div>
+    </article>
+
+    <!-- ACCESS -->
+    <article class="page" id="p-access" data-title="Access, deposits and withdrawals">
+      <div class="crumb">Start here</div>
+      <h1>Access, deposits and withdrawals</h1>
+      <p class="intro">How the Oxely App is designed to work once it launches, from connecting a wallet to taking your money out.</p>
+
+      <h2>Who can use Oxely</h2>
+      <p>Access will open to the waitlist first. Some vaults may only be available in certain countries or to certain types of users. Each vault page will show who it is open to before you can deposit.</p>
+
+      <h2>The deposit flow</h2>
+      <div class="flow">
+        <div><i>01</i><b>Connect</b><small>Connect your own wallet. Oxely never holds your keys.</small></div>
+        <div><i>02</i><b>Read</b><small>Read the vault's strategy, limits, risks and terms.</small></div>
+        <div><i>03</i><b>Deposit</b><small>Approve and deposit the vault's asset, up to its cap.</small></div>
+        <div><i>04</i><b>Receive shares</b><small>Vault shares arrive in your wallet.</small></div>
+      </div>
+
+      <h2>Withdrawals</h2>
+      <p>You withdraw by returning (redeeming) your vault shares. You receive the vault's asset based on the share value at that time, minus any fees.</p>
+      <ul class="list">
+        <li>Each vault publishes its withdrawal terms before launch: how often you can withdraw and how long it takes.</li>
+        <li>Vaults keep part of their funds in reserve so normal withdrawals can be paid quickly.</li>
+        <li>In unusual market conditions, withdrawals may take longer. Any such rules will be written in the vault terms up front.</li>
+      </ul>
+
+      <h2>Fees</h2>
+      <p>Fees will be shown on every vault page before you deposit. Oxely does not plan any hidden or deposit-time fees that are not listed there.</p>
+      <div class="note warn"><svg><use href="#info"/></svg><p>Never send funds to any address claiming to be Oxely. During the preview, Oxely does not accept deposits of any kind.</p></div>
+    </article>
+
+    <!-- STABLE -->
+    <article class="page" id="p-stable" data-title="Oxely Stable">
+      <div class="crumb">Vaults</div>
+      <h1>Oxely Stable</h1>
+      <p class="intro">A stablecoin vault for people who want their dollars to stay dollars, while earning lending interest.</p>
+      <div class="kv">
+        <div><span>Status</span><b>In development</b></div>
+        <div><span>Deposit assets</span><b>USDC, USDT (planned)</b></div>
+        <div><span>Risk profile</span><b>Conservative</b></div>
+        <div><span>Target return</span><b>Published at launch</b></div>
+        <div><span>Withdrawals</span><b>Terms published at launch</b></div>
+      </div>
+      <h2>How it plans to earn</h2>
+      <p>Deposits are lent out across several on-chain lending markets. Borrowers pay interest, and that interest is what the vault earns. Returns go up and down with lending demand.</p>
+      <h2>Limits</h2>
+      <ul class="list">
+        <li>A maximum share of the vault in any single lending market.</li>
+        <li>A minimum reserve kept aside for withdrawals.</li>
+        <li>Only stablecoins and markets on an approved list.</li>
+      </ul>
+      <p>The exact numbers and the approved list will be published before launch.</p>
+      <h2>Main risks</h2>
+      <p>Smart contract risk in the vault or the lending markets, a stablecoin losing its peg, and lending rates falling. See <a class="inl" href="#risks">Risks and controls</a>.</p>
+    </article>
+
+    <!-- HEDGE -->
+    <article class="page" id="p-hedge" data-title="Oxely Hedge">
+      <div class="crumb">Vaults</div>
+      <h1>Oxely Hedge</h1>
+      <p class="intro">A market-neutral vault that aims to earn from funding payments and price differences, while keeping overall price exposure close to zero.</p>
+      <div class="kv">
+        <div><span>Status</span><b>In research</b></div>
+        <div><span>Deposit asset</span><b>USDC (planned)</b></div>
+        <div><span>Risk profile</span><b>Moderate</b></div>
+        <div><span>Target return</span><b>Published at launch</b></div>
+        <div><span>Reporting</span><b>On-chain + weekly notes</b></div>
+      </div>
+      <h2>How it plans to earn</h2>
+      <p>The vault holds a long position and a short position of similar size in the same asset. If the price rises or falls, one side gains while the other loses, so they roughly cancel out. The vault aims to earn from the funding payments between those positions.</p>
+      <h2>What "market-neutral" does not mean</h2>
+      <p>It does not mean risk-free. Funding can turn negative, a trading venue can fail, and fast price moves can cause losses before a hedge is adjusted.</p>
+      <h2>Main risks</h2>
+      <p>Negative funding, venue or counterparty risk, imperfect hedges, and smart contract risk. See <a class="inl" href="#risks">Risks and controls</a>.</p>
+    </article>
+
+    <!-- CUSTOM -->
+    <article class="page" id="p-custom" data-title="Oxely Custom">
+      <div class="crumb">Vaults</div>
+      <h1>Oxely Custom</h1>
+      <p class="intro">A vault designed around your team's own rules, running on the same infrastructure as Oxely's flagship vaults.</p>
+      <div class="kv">
+        <div><span>Status</span><b>By request</b></div>
+        <div><span>Who it is for</span><b>DAOs, treasuries, funds</b></div>
+        <div><span>Assets</span><b>Chosen per mandate</b></div>
+        <div><span>Limits</span><b>Agreed and written up front</b></div>
+      </div>
+      <h2>How it works</h2>
+      <ol class="list">
+        <li>You tell us your assets, limits, risk appetite and reporting needs.</li>
+        <li>We write a mandate together and agree on every limit.</li>
+        <li>The vault is set up with those limits and reviewed before it holds funds.</li>
+        <li>You and your stakeholders can follow every position on-chain.</li>
+      </ol>
+      <p style="margin-top:18px"><a class="btn btn-cream" href="/#contact">Talk to the team</a></p>
+    </article>
+
+    <!-- VALUE -->
+    <article class="page" id="p-value" data-title="Share value and transparency">
+      <div class="crumb">Reference</div>
+      <h1>Share value and transparency</h1>
+      <p class="intro">How the value of a vault share is worked out, and what you can check for yourself.</p>
+      <h2>Share value</h2>
+      <p>When you deposit, you receive shares. Each share is a slice of everything the vault holds.</p>
+      <div class="formula">share value = (vault assets − liabilities − fees owed) ÷ shares outstanding</div>
+      <p style="margin-top:14px">If the vault earns, share value goes up. If it loses, share value goes down. Your number of shares stays the same.</p>
+      <h2>What you can check on-chain</h2>
+      <ul class="list">
+        <li>Your share balance, in your own wallet.</li>
+        <li>Deposits and withdrawals into the vault.</li>
+        <li>The vault's on-chain positions and where they sit.</li>
+      </ul>
+      <h2>What we will report</h2>
+      <p>Each vault will publish regular plain-language updates explaining what changed and why. Any part of a strategy that cannot be seen on-chain will be clearly labelled as reported by Oxely.</p>
+    </article>
+
+    <!-- RISKS -->
+    <article class="page" id="p-risks" data-title="Risks and controls">
+      <div class="crumb">Reference</div>
+      <h1>Risks and controls</h1>
+      <p class="intro">Every vault can lose money. This page lists the main risks and the controls designed to reduce them.</p>
+      <div class="note warn"><svg><use href="#info"/></svg><p>Controls reduce risk; they do not remove it. Only deposit what you can afford to lose.</p></div>
+      <div class="risk">
+        <div><span>Risk</span><span>What could happen</span><span>Planned control</span></div>
+        <div><b>Smart contracts</b><span>A bug lets funds be taken or locked.</span><span>Independent audits before launch; deposit caps at the start.</span></div>
+        <div><b>Stablecoin depeg</b><span>A stablecoin falls below $1.</span><span>Approved-asset list and limits per stablecoin.</span></div>
+        <div><b>Venue / counterparty</b><span>A lending market or exchange fails.</span><span>Hard limits per venue; spread across several venues.</span></div>
+        <div><b>Market moves</b><span>Fast price swings before a hedge is adjusted.</span><span>Exposure limits and round-the-clock monitoring.</span></div>
+        <div><b>Liquidity</b><span>Withdrawals take longer than usual.</span><span>Minimum reserve; withdrawal terms written up front.</span></div>
+        <div><b>Returns</b><span>Rates or funding fall, so returns drop or turn negative.</span><span>Clear reporting; no promised returns.</span></div>
+      </div>
+    </article>
+
+    <!-- FAQ -->
+    <article class="page" id="p-faq" data-title="FAQ">
+      <div class="crumb">Reference</div>
+      <h1>FAQ</h1>
+      <p class="intro">Short answers to common questions. Can't find yours? <a class="inl" href="/#contact">Ask us</a>.</p>
+      <details><summary>Is Oxely live?<i></i></summary><div class="a">Not yet. Oxely is in development and does not accept deposits. Join the waitlist to hear when the first vault opens.</div></details>
+      <details><summary>Does Oxely hold my funds?<i></i></summary><div class="a">No. You keep your keys and your vault shares sit in your own wallet. Funds move only when you sign a transaction.</div></details>
+      <details><summary>What returns can I expect?<i></i></summary><div class="a">Target returns will be published with each vault's full strategy at launch. Returns are never guaranteed and can be negative.</div></details>
+      <details><summary>Can I withdraw any time?<i></i></summary><div class="a">Each vault will publish its withdrawal terms before launch. Most are designed for regular withdrawals, but timing can be longer in unusual market conditions.</div></details>
+      <details><summary>Have the contracts been audited?<i></i></summary><div class="a">Not yet. No vault will open to deposits before its contracts are reviewed by independent auditors, and reports will be published.</div></details>
+      <details><summary>Someone from "Oxely" asked me to send funds. Is it real?<i></i></summary><div class="a">No. Oxely does not accept deposits during the preview and will never ask you to send funds to an address by message. Only use the official site, oxely.xyz.</div></details>
+    </article>
+
+    <nav class="pager" id="pager" aria-label="Pages"></nav>
+    <p class="updated">Last updated: November 2026 · Preview documentation</p>
+  </main>
+</div>
+
+<footer>
+  <div class="in">
+    <div class="l"><a href="/" class="brand" style="margin-right:0"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely</a><span>On-chain vaults. Clear rules.</span></div>
+    <nav><a href="/">Home</a><a href="/app">App</a><a href="/docs">Docs</a><a href="/#contact">Waitlist</a></nav>
+  </div>
+  <p class="c">© <span id="yr"></span> Oxely · Preview documentation. Nothing here is financial advice.</p>
+</footer>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+  const pages = $$('.page'), order = pages.map(p => p.id.slice(2)), links = $$('.side a[data-p]');
+  const side = $('#side'), scrim = $('#scrim'), menu = $('#menu'), prog = $('#progress');
+
+  function show(id, jump) {
+    if (!order.includes(id)) id = 'overview';
+    pages.forEach(p => p.classList.toggle('on', p.id === 'p-' + id));
+    links.forEach(a => a.classList.toggle('on', a.dataset.p === id));
+    const i = order.indexOf(id), prev = order[i - 1], next = order[i + 1], t = k => $('#p-' + k).dataset.title;
+    $('#pager').innerHTML = (prev ? `<a href="#${prev}"><small>Previous</small><b>← ${t(prev)}</b></a>` : '<span></span>') +
+                            (next ? `<a class="nx" href="#${next}"><small>Next</small><b>${t(next)} →</b></a>` : '');
+    document.title = (id === 'overview' ? 'Oxely documentation' : t(id) + ' · Oxely docs');
+    if (jump) scrollTo({ top: 0, behavior: 'smooth' });
+    closeMenu(); bar();
+  }
+  const fromHash = () => show(location.hash.slice(1) || 'overview', true);
+  addEventListener('hashchange', fromHash);
+  show(location.hash.slice(1) || 'overview', false);
+
+  /* sidebar search */
+  const q = $('#q');
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase(); let n = 0;
+    links.forEach(a => {
+      const page = $('#p-' + a.dataset.p), hit = !v || a.textContent.toLowerCase().includes(v) || page.textContent.toLowerCase().includes(v);
+      a.classList.toggle('hide', !hit); if (hit) n++;
+    });
+    $$('.grp').forEach(g => g.style.display = $$('a:not(.hide)', g).length ? '' : 'none');
+    $('#none').style.display = n ? 'none' : 'block';
+  });
+  addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== q) { e.preventDefault(); if (innerWidth <= 900) openMenu(); q.focus(); }
+    if (e.key === 'Escape') { closeMenu(); q.blur(); }
+  });
+
+  /* mobile docs menu */
+  function openMenu() { side.classList.add('open'); scrim.classList.add('on'); menu.setAttribute('aria-expanded', 'true'); }
+  function closeMenu() { side.classList.remove('open'); scrim.classList.remove('on'); menu.setAttribute('aria-expanded', 'false'); }
+  menu.addEventListener('click', openMenu);
+  scrim.addEventListener('click', closeMenu);
+
+  /* reading progress */
+  function bar() { const h = document.documentElement.scrollHeight - innerHeight; prog.style.transform = `scaleX(${h > 0 ? Math.min(1, scrollY / h) : 1})`; }
+  addEventListener('scroll', bar, { passive: true }); addEventListener('resize', bar);
+})();
+</script>
+</body>
+</html>

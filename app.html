@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oxely App · Every vault, in your pocket</title>
+<meta name="description" content="The Oxely App lets you connect a wallet, choose a vault and follow every position live. Get early access.">
+<meta name="theme-color" content="#0a0a09">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a09;--bg2:#111110;--panel:#151513;--cream:#f4ead2;--text:#e6dfcd;--muted:#8d877b;--dim:#57534b;
+  --line:rgba(244,234,210,.08);--line2:rgba(244,234,210,.15);--gold:#e2bf7e;--green:#9fcf8a;
+  --paper:#efe9dc;--ink:#171613;--inkm:#6b665c;
+  --sans:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);--gut:clamp(18px,4vw,48px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;scroll-behavior:smooth;scroll-padding-top:96px}
+body{overflow-x:hidden;background:var(--bg)}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+button{font:inherit}
+::selection{background:var(--cream);color:var(--bg)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 var(--gut)}
+.lab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 20px;border-radius:9px;font-size:14px;font-weight:500;white-space:nowrap;border:1px solid transparent;cursor:pointer;transition:background .25s,border-color .25s,color .25s,transform .35s var(--ease)}
+.btn-cream{background:var(--cream);color:#121110}.btn-cream:hover{background:#fff}
+.btn-ghost{border-color:var(--line2);color:var(--text)}.btn-ghost:hover{background:rgba(244,234,210,.06)}
+.btn-ink{background:var(--ink);color:var(--cream)}.btn-ink:hover{background:#000}
+.btn-line{border-color:rgba(23,22,19,.2);color:var(--ink)}.btn-line:hover{background:rgba(23,22,19,.05)}
+.btn .arr{transition:transform .3s var(--ease)}.btn:hover .arr{transform:translateX(3px)}
+
+/* header */
+.header{position:fixed;top:14px;left:0;right:0;z-index:50;padding:0 var(--gut);display:flex;justify-content:center;pointer-events:none}
+.nav{pointer-events:auto;position:relative;height:54px;display:flex;align-items:center;gap:4px;padding:0 7px 0 18px;border-radius:13px;
+  background:rgba(17,17,16,.66);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 12px 40px -18px rgba(0,0,0,.9)}
+.nav::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(110deg,rgba(226,191,126,.55),rgba(244,234,210,.12) 30%,rgba(244,234,210,.06) 60%,rgba(226,191,126,.4));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;color:var(--cream);margin-right:8px}
+.brand svg{width:22px;height:auto;color:var(--cream)}
+.tagapp{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--gold);border:1px solid rgba(226,191,126,.35);border-radius:6px;padding:3px 7px;margin-right:18px}
+.links{display:flex}
+.links a{font-size:13.5px;color:var(--muted);padding:8px 11px;border-radius:7px;transition:color .2s}
+.links a:hover{color:var(--cream)}
+.nav .btn{margin-left:14px;height:38px}
+.burger{display:none;width:40px;height:40px;border:0;background:none;color:var(--cream);place-items:center;cursor:pointer;border-radius:8px;margin-left:auto}
+.burger i{display:block;width:16px;height:1.5px;background:currentColor;box-shadow:0 -5px 0 currentColor,0 5px 0 currentColor}
+.mnav{position:fixed;top:76px;left:var(--gut);right:var(--gut);z-index:49;padding:8px;border-radius:14px;background:rgba(17,17,16,.96);border:1px solid var(--line2);display:none}
+.mnav.open{display:grid}.mnav a{padding:12px 14px;border-radius:8px;font-size:15px}
+
+/* hero */
+.hero{position:relative;padding:150px var(--gut) 0;text-align:center;overflow:hidden}
+.hero::before{content:"";position:absolute;left:50%;top:60%;width:min(1000px,140vw);aspect-ratio:1.5;transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side,rgba(226,191,126,.18),rgba(226,191,126,.04) 55%,transparent 75%);pointer-events:none}
+.pill{position:relative;display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px 0 10px;border-radius:999px;border:1px solid var(--line2);font-size:12.5px;color:var(--muted);margin-bottom:24px}
+.pill b{font-weight:500;color:var(--cream)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.hero h1{position:relative;font-weight:400;font-size:clamp(40px,6.6vw,82px);line-height:1.02;letter-spacing:-.04em;color:var(--cream);max-width:920px;margin:0 auto}
+.hero .sub{position:relative;max-width:540px;margin:18px auto 0;font-size:clamp(15px,1.5vw,17px);line-height:1.55;color:var(--muted)}
+.hero .cta{position:relative;display:flex;gap:10px;justify-content:center;margin-top:28px;flex-wrap:wrap}
+
+/* phone mockup */
+.pstage{position:relative;height:clamp(460px,58vw,600px);margin-top:40px;perspective:1400px}
+.phone{position:absolute;left:50%;top:0;width:270px;height:550px;margin-left:-135px;border-radius:44px;padding:11px;
+  background:linear-gradient(145deg,#2b2925,#0f0e0d 40%,#1d1c19);box-shadow:0 0 0 1px rgba(244,234,210,.12),0 60px 120px -40px rgba(0,0,0,.95),inset 0 0 0 2px #050505;
+  transform-style:preserve-3d;will-change:transform}
+.screen{position:relative;height:100%;border-radius:34px;overflow:hidden;background:linear-gradient(180deg,#151411,#0c0c0b);padding:46px 16px 16px;text-align:left}
+.notch{position:absolute;top:10px;left:50%;width:92px;height:24px;margin-left:-46px;border-radius:14px;background:#000}
+.s-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.s-top .brand{font-size:11px;letter-spacing:.3em;margin:0}.s-top .brand svg{width:15px}
+.s-top span{font-family:var(--mono);font-size:9.5px;color:var(--gold);border:1px solid rgba(226,191,126,.35);border-radius:5px;padding:2px 6px}
+.s-bal .lab{font-size:9.5px}
+.s-bal b{display:block;font-weight:400;font-size:28px;letter-spacing:-.03em;color:var(--cream);margin:6px 0 2px}
+.s-bal small{font-size:11px;color:var(--green)}
+.s-chart{height:90px;margin:14px -4px 10px}
+.s-chart path.l{fill:none;stroke:var(--gold);stroke-width:1.6;stroke-dasharray:600;stroke-dashoffset:600;animation:draw 2.6s var(--ease) .8s forwards}
+.s-chart path.a{fill:url(#pg);opacity:0;animation:fadein 1s 2s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}@keyframes fadein{to{opacity:1}}
+.s-tabs{display:flex;gap:6px;margin-bottom:14px}
+.s-tabs i{font-style:normal;font-size:10px;color:var(--muted);padding:4px 8px;border-radius:6px}
+.s-tabs i.on{background:rgba(244,234,210,.08);color:var(--cream)}
+.s-pos{display:grid;gap:8px}
+.s-pos div{display:flex;align-items:center;gap:10px;padding:11px;border-radius:12px;background:rgba(244,234,210,.04);border:1px solid var(--line)}
+.s-pos .ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:rgba(226,191,126,.12)}
+.s-pos .ic svg{width:15px;color:var(--gold)}
+.s-pos p{flex:1;font-size:12px;color:var(--cream);line-height:1.3}
+.s-pos p small{display:block;font-size:10px;color:var(--muted)}
+.s-pos em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--green)}
+.s-btn{margin-top:14px;height:38px;border-radius:10px;background:var(--cream);color:#121110;font-size:12px;font-weight:500;display:grid;place-items:center}
+.demo{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em}
+.chip{position:absolute;z-index:2;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(21,21,19,.82);border:1px solid var(--line2);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);text-align:left;font-size:12.5px;color:var(--text);box-shadow:0 20px 50px -20px rgba(0,0,0,.9);animation:bob 6s ease-in-out infinite}
+.chip small{display:block;font-size:11px;color:var(--muted)}
+.chip i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(159,207,138,.12);flex:none}
+.chip i svg{width:15px;color:var(--green)}
+.chip.c1{left:calc(50% - 330px);top:110px}
+.chip.c2{left:calc(50% + 150px);top:300px;animation-delay:-3s}
+.chip.c2 i{background:rgba(226,191,126,.12)}.chip.c2 i svg{color:var(--gold)}
+@keyframes bob{50%{transform:translateY(-12px)}}
+
+/* stats */
+.stats{position:relative;z-index:3;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:-90px}
+.stat{text-align:left;padding:20px;border-radius:14px;background:rgba(21,21,19,.78);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  opacity:0;transform:translateY(40px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.stat.in{opacity:1;transform:none}
+.stat .num{font-size:clamp(28px,3vw,36px);letter-spacing:-.03em;color:var(--cream);margin-top:40px}
+.stat .cap{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* reveals */
+.wb .w{display:inline-block;opacity:0;filter:blur(12px);transform:translateY(.25em);transition:opacity .8s var(--ease),filter .8s var(--ease),transform .8s var(--ease)}
+.wb.in .w{opacity:1;filter:none;transform:none}
+.wp{clip-path:inset(0 0 100% 0);transform:translateY(16px);transition:clip-path 1s var(--ease),transform 1s var(--ease)}
+.wp.in{clip-path:inset(0 0 -10% 0);transform:none}
+
+.sec{padding-top:clamp(100px,13vw,170px)}
+.h2{font-weight:400;font-size:clamp(34px,5vw,62px);line-height:1.02;letter-spacing:-.04em;color:var(--cream)}
+.lead{margin-top:14px;max-width:520px;font-size:16px;line-height:1.55;color:var(--muted)}
+
+/* light section */
+.light{margin-top:clamp(100px,13vw,170px);background:var(--paper);color:var(--ink);position:relative;overflow:hidden}
+.light .wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,80px);align-items:center;min-height:620px;padding-top:80px;padding-bottom:80px}
+.light .h2{color:var(--ink)}
+.light .lead{color:var(--inkm)}
+.light .row{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
+.stack{position:relative;height:440px}
+.card{position:absolute;border-radius:18px;background:#fbf8f1;border:1px solid rgba(23,22,19,.08);box-shadow:0 30px 60px -30px rgba(23,22,19,.35);padding:20px;will-change:transform}
+.card .lab{color:#9a9488}
+.card.k1{left:4%;top:6%;width:66%}
+.card.k2{right:0;top:38%;width:58%}
+.card.k3{left:14%;bottom:2%;width:52%}
+.card h4{font-weight:500;font-size:16px;margin:8px 0 4px}
+.card p{font-size:13px;color:var(--inkm);line-height:1.45}
+.meter{height:8px;border-radius:9px;background:#ece5d6;margin-top:14px;overflow:hidden}
+.meter i{display:block;height:100%;width:62%;border-radius:inherit;background:linear-gradient(90deg,#b89859,#e2bf7e)}
+.rowv{display:flex;justify-content:space-between;font-size:12.5px;color:var(--inkm);margin-top:10px}
+.rowv b{font-weight:500;color:var(--ink)}
+.tick{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3f7a2b;margin-top:10px}
+
+/* how it works: cube slider */
+.how{margin-top:0;background:#f6f2e9;color:var(--ink);border-top:1px solid rgba(23,22,19,.06)}
+.how .wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,80px);align-items:center;min-height:640px;padding-top:70px;padding-bottom:90px;position:relative}
+.cubewrap{height:380px;display:grid;place-items:center;perspective:1000px}
+.cube{position:relative;width:180px;height:180px;transform-style:preserve-3d;transition:transform 1.3s cubic-bezier(.6,0,.2,1)}
+.cube div{position:absolute;inset:0;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(145deg,#f8f5ee,#d9d3c6);border:1px solid rgba(23,22,19,.12);box-shadow:inset 0 0 40px rgba(23,22,19,.08)}
+.cube div svg{width:46%;color:var(--ink)}
+.cube div span{position:absolute;bottom:12px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#8a8478}
+.cube .f1{transform:translateZ(90px)}.cube .f2{transform:rotateY(90deg) translateZ(90px)}.cube .f3{transform:rotateX(-90deg) translateZ(90px)}
+.cube .f4{transform:rotateY(180deg) translateZ(90px)}.cube .f5{transform:rotateY(-90deg) translateZ(90px)}.cube .f6{transform:rotateX(90deg) translateZ(90px)}
+.cshadow{width:200px;height:24px;border-radius:50%;background:radial-gradient(closest-side,rgba(23,22,19,.25),transparent);margin-top:40px}
+.slides{position:relative;min-height:260px}
+.slide{position:absolute;inset:0;opacity:0;transform:translateY(24px);transition:opacity .6s var(--ease),transform .6s var(--ease);pointer-events:none}
+.slide.on{opacity:1;transform:none;pointer-events:auto}
+.slide .k{font-family:var(--mono);font-size:12px;color:#a8873f}
+.slide h3{font-weight:400;font-size:clamp(32px,4vw,48px);letter-spacing:-.035em;margin:12px 0 12px}
+.slide p{font-size:16px;line-height:1.6;color:var(--inkm);max-width:440px}
+.dots{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;gap:8px}
+.dots button{width:8px;height:8px;border-radius:9px;border:0;background:rgba(23,22,19,.2);cursor:pointer;transition:width .4s var(--ease),background .3s;padding:0}
+.dots button.on{width:28px;background:var(--ink)}
+
+/* roadmap */
+.road{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:50px}
+.phase{position:relative;padding:22px;border-radius:16px;background:var(--panel);border:1px solid var(--line);overflow:hidden}
+.phase .st{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;border:1px solid var(--line2);font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.phase.now{border-color:rgba(226,191,126,.45)}
+.phase.now .st{color:var(--gold);border-color:rgba(226,191,126,.45)}
+.phase.now::after{content:"";position:absolute;left:0;top:0;height:2px;width:100%;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:scan 3s linear infinite}
+@keyframes scan{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.phase h4{font-weight:500;font-size:18px;color:var(--cream);margin:44px 0 6px}
+.phase p{font-size:14px;line-height:1.5;color:var(--muted)}
+.phase .n{position:absolute;top:18px;right:20px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+
+/* partners card */
+.pcard{position:relative;margin-top:clamp(60px,8vw,90px);border-radius:22px;border:1px solid var(--line2);padding:clamp(26px,4vw,44px);overflow:hidden;
+  display:grid;grid-template-columns:1.4fr auto;gap:30px;align-items:center;background:linear-gradient(120deg,#16150f,#0e0e0c)}
+.pcard::before{content:"";position:absolute;right:-80px;top:-80px;width:340px;height:340px;border-radius:50%;background:radial-gradient(closest-side,rgba(226,191,126,.18),transparent);animation:drift 9s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(-120px,60px)}}
+.pcard h3{position:relative;font-weight:400;font-size:clamp(24px,3vw,34px);letter-spacing:-.03em;color:var(--cream);margin:10px 0 10px}
+.pcard p{position:relative;font-size:15px;line-height:1.55;color:var(--muted);max-width:560px}
+.pcard .btn{position:relative}
+
+/* use cases */
+.uses{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:50px}
+.use{position:relative;padding:28px;border-radius:18px;background:var(--panel);border:1px solid var(--line);overflow:hidden;transition:border-color .3s}
+.use:hover{border-color:var(--line2)}
+.use .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line2);background:rgba(244,234,210,.04);margin-bottom:34px;transition:transform .5s var(--ease)}
+.use:hover .ic{transform:rotate(-8deg) scale(1.08)}
+.use .ic svg{width:20px;color:var(--cream)}
+.use h4{font-weight:500;font-size:20px;color:var(--cream);margin-bottom:8px}
+.use p{font-size:14.5px;line-height:1.6;color:var(--muted);max-width:480px}
+.use .line{position:absolute;left:0;bottom:0;height:1px;width:100%;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);transition:transform .6s var(--ease)}
+.use:hover .line{transform:scaleX(1)}
+
+/* final */
+@property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+.final{position:relative;isolation:isolate;margin-top:clamp(100px,13vw,170px);border-radius:20px;padding:clamp(56px,8vw,96px) 24px;text-align:center;overflow:hidden;background:#0e0e0d}
+.final::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;
+  background:conic-gradient(from var(--ang),rgba(226,191,126,.9),rgba(244,234,210,.08) 22%,rgba(150,120,200,.55) 45%,rgba(244,234,210,.08) 68%,rgba(226,191,126,.9));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spinb 9s linear infinite}
+@keyframes spinb{to{--ang:360deg}}
+.final .fd{position:absolute;inset:0;z-index:-1;background-image:radial-gradient(rgba(244,234,210,.1) 1px,transparent 1.3px);background-size:22px 22px}
+.final .lead{margin:16px auto 0;font-size:clamp(16px,1.6vw,19px);color:#bdb5a4}
+.final .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+
+footer{margin-top:clamp(80px,10vw,130px);border-top:1px solid var(--line);padding:36px 0 40px}
+.fb{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.fb .l{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fb .l span{font-size:14px;color:var(--muted)}
+.fb nav{display:flex;gap:20px;font-size:13.5px;color:var(--muted)}
+.fb nav a:hover{color:var(--cream)}
+.disc{margin-top:28px;max-width:760px;font-size:12.5px;line-height:1.6;color:var(--dim)}
+.copy{margin-top:16px;font-size:13px;color:var(--dim)}
+
+@media (max-width:980px){
+  .links,.nav .btn{display:none}.burger{display:grid}.nav{width:100%}
+  .chip{display:none}
+  .stats{margin-top:-60px}
+  .light .wrap,.how .wrap{grid-template-columns:1fr;min-height:0}
+  .stack{height:380px}
+  .cubewrap{height:280px}
+  .how .wrap{padding-bottom:110px}
+  .road{grid-template-columns:repeat(2,1fr)}
+  .pcard{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .stats,.road,.uses{grid-template-columns:1fr}
+  .phone{transform:scale(.88);transform-origin:top center}
+  .stack{height:auto;display:grid;gap:12px}
+  .card,.card.k1,.card.k2,.card.k3{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:auto;transform:none!important}
+  .card.k2{margin-left:18px}
+  .slides{min-height:300px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .wb .w,.wp,.stat{opacity:1!important;filter:none!important;transform:none!important;clip-path:none!important}
+  .s-chart path.l{stroke-dashoffset:0}.s-chart path.a{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="oxm" maskUnits="userSpaceOnUse" x="6" y="6" width="90" height="80">
+      <path fill="#fff" d="M37 22C42 15 47 12 52 12C58 12 63 15 66 20L88 55C94 64 91 79 76 79L26 79C14 79 9 67 15 57Z"/>
+      <ellipse cx="50" cy="56" rx="23" ry="23.3" fill="#000"/>
+      <path fill="#000" d="M50 56L53 33L68 18L100 0L100 22L72 57Z"/>
+      <circle cx="50" cy="56" r="12.5" fill="#fff"/>
+    </mask>
+    <symbol id="ox" viewBox="6 6 90 80"><rect x="6" y="6" width="90" height="80" fill="currentColor" mask="url(#oxm)"/></symbol>
+    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2bf7e" stop-opacity=".3"/><stop offset="1" stop-color="#e2bf7e" stop-opacity="0"/></linearGradient>
+  </defs>
+</svg>
+
+<header class="header">
+  <nav class="nav" aria-label="Main">
+    <a href="./" class="brand" aria-label="Oxely home"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely</a>
+    <span class="tagapp">APP</span>
+    <div class="links">
+      <a href="#product">Product</a>
+      <a href="#how">How it works</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#uses">Use cases</a>
+      <a href="/docs">Docs</a>
+      <a href="./">Home</a>
+    </div>
+    <a href="dashboard.html" class="btn btn-cream mag">Open app</a>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><i></i></button>
+  </nav>
+</header>
+<div class="mnav" id="mnav">
+  <a href="#product">Product</a><a href="#how">How it works</a><a href="#roadmap">Roadmap</a><a href="#uses">Use cases</a><a href="/docs">Docs</a><a href="./">Home</a><a href="dashboard.html">Open app (preview)</a>
+</div>
+
+<section class="hero" id="top">
+  <div class="pill wp"><span class="dot"></span>Building now · <b>Oxely App</b></div>
+  <h1 class="wb">Every vault, in your pocket.</h1>
+  <p class="sub wp">Connect your wallet, pick a vault and follow every position live, all from one calm, simple app.</p>
+  <div class="cta wp">
+    <a href="dashboard.html" class="btn btn-cream mag">Open app preview <span class="arr">→</span></a>
+    <a href="./#contact" class="btn btn-ghost mag">Get early access</a>
+  </div>
+
+  <div class="pstage" aria-hidden="true">
+    <div class="chip c1"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 5 5 9-10"/></svg></i><div>Limits check passed<small>Oxely Stable · just now</small></div></div>
+    <div class="chip c2"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 10l7-7 7 7"/></svg></i><div>Position rebalanced<small>Viewable on-chain</small></div></div>
+    <div class="phone" id="phone">
+      <div class="screen">
+        <div class="notch"></div>
+        <div class="s-top"><span class="brand"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely</span><span>DEMO</span></div>
+        <div class="s-bal"><div class="lab">Your vaults</div><b>$12,480.00</b><small>Sample account</small></div>
+        <svg class="s-chart" viewBox="0 0 240 90" preserveAspectRatio="none">
+          <path class="a" d="M0 70 L20 66 L40 68 L60 58 L80 61 L100 50 L120 54 L140 42 L160 46 L180 34 L200 38 L220 26 L240 28 L240 90 L0 90Z"/>
+          <path class="l" d="M0 70 L20 66 L40 68 L60 58 L80 61 L100 50 L120 54 L140 42 L160 46 L180 34 L200 38 L220 26 L240 28"/>
+        </svg>
+        <div class="s-tabs"><i>1D</i><i>1W</i><i class="on">1M</i><i>All</i></div>
+        <div class="s-pos">
+          <div><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9 10h4.5a1.5 1.5 0 0 1 0 3H10a1.5 1.5 0 0 0 0 3h5"/></svg></span><p>Oxely Stable<small>Stablecoins</small></p><em>sample</em></div>
+          <div><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M12 4v16"/></svg></span><p>Oxely Hedge<small>Market-neutral</small></p><em>sample</em></div>
+        </div>
+        <div class="s-btn">Deposit</div>
+        <div class="demo">PREVIEW · NOT REAL DATA</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding:0">
+    <div class="stats">
+      <div class="stat"><div class="lab">Vaults at launch</div><div class="num"><span data-count="3">0</span></div><div class="cap">Stable, Hedge and Custom</div></div>
+      <div class="stat"><div class="lab">Custody</div><div class="num">Yours</div><div class="cap">Your keys never leave your wallet</div></div>
+      <div class="stat"><div class="lab">Tracking</div><div class="num">Live</div><div class="cap">Every position, straight from the chain</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="light" id="product">
+  <div class="wrap">
+    <div>
+      <div class="lab wp" style="color:#a8873f">Product</div>
+      <h2 class="h2 wb" style="margin-top:14px">Built for clarity, not for traders.</h2>
+      <p class="lead wp">No charts you need a course to read. The Oxely App shows what you hold, what each vault is doing and why, in plain language.</p>
+      <div class="row wp">
+        <a href="./#contact" class="btn btn-ink mag">Get early access</a>
+        <a href="#how" class="btn btn-line mag">How it works</a>
+      </div>
+    </div>
+    <div class="stack" id="stack">
+      <div class="card k1" data-s="-40"><div class="lab">Vault health · example</div><h4>Oxely Stable</h4><p>All limits inside range. Reserve above minimum.</p><div class="meter"><i></i></div><div class="rowv"><span>Largest venue share</span><b>≤ 45%</b></div></div>
+      <div class="card k2" data-s="30"><div class="lab">Plain-language update</div><h4>Why did this change?</h4><p>Funding turned negative on one market, so the vault moved part of the hedge to keep exposure near zero.</p></div>
+      <div class="card k3" data-s="-15"><div class="lab">Withdraw</div><h4>Your terms, upfront</h4><p>See exactly when and how you can redeem before you deposit.</p><span class="tick">✓ Shown before every deposit</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="cubewrap">
+      <div>
+        <div class="cube" id="cube">
+          <div class="f1"><svg viewBox="6 6 90 80"><use href="#ox"/></svg><span>CONNECT</span></div>
+          <div class="f2"><svg viewBox="6 6 90 80"><use href="#ox"/></svg><span>CHOOSE</span></div>
+          <div class="f3"><svg viewBox="6 6 90 80"><use href="#ox"/></svg><span>FOLLOW</span></div>
+          <div class="f4"></div><div class="f5"></div><div class="f6"></div>
+        </div>
+        <div class="cshadow"></div>
+      </div>
+    </div>
+    <div class="slides" id="slides">
+      <div class="slide on"><div class="k">01 / 03</div><h3>Connect your wallet</h3><p>Use the wallet you already have. Oxely never asks for your keys and can't move funds without your signature.</p></div>
+      <div class="slide"><div class="k">02 / 03</div><h3>Choose a vault</h3><p>Each vault shows its strategy, limits, risks and withdrawal terms on one page before you put anything in.</p></div>
+      <div class="slide"><div class="k">03 / 03</div><h3>Follow it live</h3><p>Watch positions update in real time, get short updates when something changes, and check it all on-chain.</p></div>
+    </div>
+    <div class="dots" id="dots"><button class="on" aria-label="Step 1"></button><button aria-label="Step 2"></button><button aria-label="Step 3"></button></div>
+  </div>
+</section>
+
+<main class="wrap">
+  <section class="sec" id="roadmap">
+    <h2 class="h2 wb">Where we are.</h2>
+    <p class="lead wp">An honest look at the road to launch. We'll update this page as each step is done.</p>
+    <div class="road">
+      <div class="phase now wp"><span class="n">01</span><span class="st">● Now</span><h4>Design &amp; research</h4><p>Strategy research, risk limits and the app's first designs.</p></div>
+      <div class="phase wp"><span class="n">02</span><span class="st">Next</span><h4>Testnet preview</h4><p>Vaults running on testnet for early waitlist members to try.</p></div>
+      <div class="phase wp"><span class="n">03</span><span class="st">Planned</span><h4>Independent audits</h4><p>Outside reviews of every contract before any real deposits.</p></div>
+      <div class="phase wp"><span class="n">04</span><span class="st">Planned</span><h4>Launch</h4><p>The Oxely App opens, starting with the waitlist.</p></div>
+    </div>
+
+    <div class="pcard wp">
+      <div>
+        <div class="lab">Teams &amp; partners</div>
+        <h3>Building something Oxely could plug into?</h3>
+        <p>If you run a protocol, a DAO treasury or a fund and want early access or an integration, we'd like to hear from you.</p>
+      </div>
+      <a href="./#contact" class="btn btn-cream mag">Talk to the team <span class="arr">→</span></a>
+    </div>
+  </section>
+
+  <section class="sec" id="uses">
+    <h2 class="h2 wb">Made for real people and real teams.</h2>
+    <div class="uses">
+      <div class="use wp"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"/></svg></div><h4>Everyday holders</h4><p>Put idle stablecoins to work without watching markets all day, and see what's happening in words you understand.</p><i class="line"></i></div>
+      <div class="use wp"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg></div><h4>DAO treasuries</h4><p>Give token holders a clear view of where treasury funds sit, with limits set in advance and every move visible on-chain.</p><i class="line"></i></div>
+      <div class="use wp"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><h4>Funds &amp; desks</h4><p>Run a custom vault around your own mandate, with reporting your investors can check for themselves.</p><i class="line"></i></div>
+      <div class="use wp"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg></div><h4>Builders</h4><p>Planned: tools to show Oxely vaults inside your own wallet or app, so your users can join without leaving.</p><i class="line"></i></div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="fd"></div>
+    <h2 class="h2 wb">Be first to use Oxely.</h2>
+    <p class="lead wp">Join the waitlist and get early access when the app opens.</p>
+    <div class="row wp">
+      <a href="./#contact" class="btn btn-cream mag">Get early access</a>
+      <a href="./" class="btn btn-ghost mag">Back to home</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fb">
+      <div class="l"><a href="./" class="brand"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely</a><span>Every vault, in your pocket.</span></div>
+      <nav><a href="./">Home</a><a href="#how">How it works</a><a href="#roadmap">Roadmap</a><a href="./#contact">Waitlist</a></nav>
+    </div>
+    <p class="disc">The Oxely App is in development and is not yet available. Screens and figures shown are previews with sample data, not real accounts or results. Nothing here is financial advice or an offer to buy or sell any asset. Digital assets are risky and can lose value.</p>
+    <div class="copy">© <span id="yr"></span> Oxely. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  $('#yr').textContent = new Date().getFullYear();
+
+  const burger = $('#burger'), mnav = $('#mnav');
+  burger.addEventListener('click', () => burger.setAttribute('aria-expanded', mnav.classList.toggle('open')));
+  $$('#mnav a').forEach(a => a.addEventListener('click', () => mnav.classList.remove('open')));
+
+  /* reveals */
+  $$('.wb').forEach(el => {
+    el.innerHTML = el.textContent.trim().split(/\s+/).map((w, i) => `<span class="w" style="transition-delay:${i * 70}ms">${w}</span>`).join(' ');
+  });
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return; e.target.classList.add('in'); io.unobserve(e.target);
+    $$('[data-count]', e.target).forEach(countUp);
+  }), { threshold: .15 });
+  $$('.wb').forEach(el => io.observe(el));
+  $$('.stat').forEach((el, i) => { el.style.transitionDelay = (300 + i * 120) + 'ms'; io.observe(el); });
+  let wps = $$('.wp');
+  wps.forEach(el => { const s = [...el.parentElement.children].filter(c => c.classList.contains('wp')); el.style.transitionDelay = Math.min(s.indexOf(el) * 90, 360) + 'ms'; });
+  function wpCheck() { const lim = innerHeight * .94; wps = wps.filter(el => { if (el.getBoundingClientRect().top < lim) { el.classList.add('in'); return false; } return true; }); }
+  addEventListener('scroll', wpCheck, { passive: true }); addEventListener('resize', wpCheck); requestAnimationFrame(wpCheck);
+  function countUp(el) {
+    const end = +el.dataset.count, t0 = performance.now();
+    (function s(now) { const p = clamp((now - t0) / 1200); el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(s); })(t0);
+  }
+
+  /* phone: follows the pointer, tips back as you scroll */
+  const phone = $('#phone'); let mx = 0, my = 0, cx = 0, cy = 0;
+  if (fine) addEventListener('pointermove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
+  const small = () => innerWidth <= 620;
+  (function loop(t) {
+    cx += (mx - cx) * .06; cy += (my - cy) * .06;
+    const sp = clamp(scrollY / innerHeight);
+    const ry = reduce ? -10 : -14 + Math.sin(t / 3200) * 6 + cx * 24, rx = reduce ? 8 : 10 + sp * 22 - cy * 12;
+    phone.style.transform = `${small() ? 'scale(.88) ' : ''}rotateX(${rx}deg) rotateY(${ry}deg) translateY(${sp * -40}px)`;
+    requestAnimationFrame(loop);
+  })(0);
+
+  /* light section: cards drift at different speeds */
+  const stack = $('#stack'), cards = $$('.card', stack);
+  function par() {
+    if (reduce) return;
+    const r = stack.getBoundingClientRect(), p = (r.top + r.height / 2 - innerHeight / 2) / innerHeight;
+    cards.forEach(c => c.style.transform = `translateY(${p * +c.dataset.s * 2}px) rotate(${p * c.dataset.s / 12}deg)`);
+  }
+  addEventListener('scroll', par, { passive: true }); par();
+
+  /* how it works: the cube turns to a new face for each step */
+  const cube = $('#cube'), slides = $$('.slide'), dots = $$('#dots button');
+  const turns = ['rotateX(-14deg) rotateY(-24deg)', 'rotateX(-14deg) rotateY(-114deg)', 'rotateX(76deg) rotateY(0deg) rotateZ(-24deg)'];
+  let step = 0, timer;
+  function go(i) {
+    step = i; cube.style.transform = turns[i];
+    slides.forEach((s, k) => s.classList.toggle('on', k === i));
+    dots.forEach((d, k) => d.classList.toggle('on', k === i));
+    clearTimeout(timer); if (!reduce) timer = setTimeout(() => go((step + 1) % 3), 4800);
+  }
+  dots.forEach((d, i) => d.addEventListener('click', () => go(i)));
+  let started = false;
+  new IntersectionObserver(([e]) => { if (e.isIntersecting && !started) { started = true; go(0); } }, { threshold: .3 }).observe($('#how'));
+  cube.style.transform = turns[0];
+
+  /* magnetic buttons */
+  if (fine && !reduce) $$('.mag').forEach(b => {
+    b.addEventListener('pointermove', e => { const r = b.getBoundingClientRect(); b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .22}px,${(e.clientY - r.top - r.height / 2) * .3}px)`; });
+    b.addEventListener('pointerleave', () => b.style.transform = '');
+  });
+})();
+</script>
+</body>
+</html>

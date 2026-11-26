@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oxely · On-chain vaults, made simple</title>
+<meta name="description" content="Oxely is building simple on-chain vaults with clear rules, self-custody and full transparency. Join the waitlist.">
+<meta name="theme-color" content="#0a0a09">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a09;--bg2:#111110;--panel:#151513;--panel2:#1b1a17;--cream:#f4ead2;--text:#e6dfcd;--muted:#8d877b;--dim:#57534b;
+  --line:rgba(244,234,210,.08);--line2:rgba(244,234,210,.15);--gold:#e2bf7e;--green:#9fcf8a;
+  --sans:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);--gut:clamp(18px,4vw,48px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;scroll-behavior:smooth;scroll-padding-top:96px}
+body{overflow-x:hidden;background:var(--bg)}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+button{font:inherit}
+::selection{background:var(--cream);color:var(--bg)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 var(--gut)}
+.mono{font-family:var(--mono)}
+.lab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+
+/* buttons */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border-radius:9px;font-size:14px;font-weight:500;white-space:nowrap;border:1px solid transparent;cursor:pointer;transition:background .25s,border-color .25s,color .25s}
+.btn-cream{background:var(--cream);color:#121110}
+.btn-cream:hover{background:#fff}
+.btn-ghost{background:transparent;border-color:var(--line2);color:var(--text)}
+.btn-ghost:hover{background:rgba(244,234,210,.06)}
+.btn .arr{transition:transform .3s var(--ease)}
+.btn:hover .arr{transform:translateX(3px)}
+.mag{will-change:transform;transition:transform .35s var(--ease),background .25s,border-color .25s}
+
+/* header */
+.header{position:fixed;top:14px;left:0;right:0;z-index:50;padding:0 var(--gut);display:flex;justify-content:center;align-items:center;gap:10px;pointer-events:none}
+.nav{pointer-events:auto;position:relative;height:54px;display:flex;align-items:center;gap:4px;padding:0 7px 0 18px;border-radius:13px;
+  background:rgba(17,17,16,.62);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 12px 40px -18px rgba(0,0,0,.9)}
+.nav::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(110deg,rgba(226,191,126,.55),rgba(244,234,210,.12) 30%,rgba(244,234,210,.06) 60%,rgba(226,191,126,.4));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;color:var(--cream);margin-right:22px}
+.brand svg{width:22px;height:auto;color:var(--cream)}
+.links{display:flex}
+.links a{font-size:13.5px;color:var(--muted);padding:8px 11px;border-radius:7px;transition:color .2s}
+.links a:hover{color:var(--cream)}
+.nav .btn{margin-left:14px;height:38px}
+.badge{pointer-events:auto;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 12px;border-radius:999px;background:rgba(17,17,16,.62);border:1px solid var(--line2);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);font-size:12.5px;color:var(--muted);white-space:nowrap;transition:border-color .2s}
+.badge:hover{border-color:rgba(226,191,126,.5)}
+.badge b{font-weight:500;color:var(--cream)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.burger{display:none;width:40px;height:40px;border:0;background:none;color:var(--cream);place-items:center;cursor:pointer;border-radius:8px;margin-left:auto}
+.burger i{display:block;width:16px;height:1.5px;background:currentColor;box-shadow:0 -5px 0 currentColor,0 5px 0 currentColor}
+.mnav{position:fixed;top:76px;left:var(--gut);right:var(--gut);z-index:49;padding:8px;border-radius:14px;background:rgba(17,17,16,.95);border:1px solid var(--line2);display:none}
+.mnav.open{display:grid}
+.mnav a{padding:12px 14px;border-radius:8px;font-size:15px}
+.mnav a:hover{background:rgba(244,234,210,.05)}
+
+/* hero */
+.hero{position:relative;padding:150px var(--gut) 0;text-align:center;overflow:hidden}
+.hero h1{position:relative;z-index:2;font-weight:400;font-size:clamp(40px,6.4vw,80px);line-height:1.02;letter-spacing:-.04em;color:var(--cream)}
+.hero .sub{position:relative;z-index:2;max-width:520px;margin:18px auto 0;font-size:clamp(15px,1.5vw,17px);line-height:1.55;color:var(--muted)}
+.hero .cta{position:relative;z-index:2;display:flex;gap:10px;justify-content:center;margin-top:28px;flex-wrap:wrap}
+.stage{position:relative;height:clamp(360px,52vw,560px);margin-top:-10px;perspective:1300px}
+.stage::before{content:"";position:absolute;left:50%;top:52%;width:min(900px,130vw);aspect-ratio:1.7;transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side,rgba(226,191,126,.2),rgba(226,191,126,.05) 50%,transparent 75%);pointer-events:none}
+#orbit{position:absolute;inset:0;width:100%;height:100%}
+.mark{position:absolute;left:50%;top:50%;width:clamp(220px,30vw,360px);aspect-ratio:90/80;margin:calc(clamp(220px,30vw,360px) * -.444) 0 0 calc(clamp(220px,30vw,360px) * -.5);transform-style:preserve-3d;will-change:transform}
+.mark svg{position:absolute;inset:0;width:100%;height:100%}
+.floor{position:absolute;left:50%;bottom:6%;width:46%;height:9%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.9),transparent);filter:blur(8px)}
+
+/* stats */
+.stats{position:relative;z-index:3;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:-70px}
+.stat{text-align:left;padding:18px 18px 20px;border-radius:14px;background:rgba(21,21,19,.72);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  opacity:0;transform:translateY(40px) scale(.96);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.stat.in{opacity:1;transform:none}
+.stat .num{font-size:clamp(26px,3vw,34px);font-weight:400;letter-spacing:-.03em;color:var(--cream);margin-top:44px}
+.stat .cap{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* tech marquee */
+.tech{margin-top:clamp(70px,9vw,110px);display:grid;gap:4px;-webkit-mask:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.tech .lab{text-align:center;margin-bottom:14px}
+.row{overflow:hidden}
+.track{display:flex;width:max-content;animation:slide 46s linear infinite}
+.row.rev .track{animation-direction:reverse;animation-duration:54s}
+.track span{display:flex;align-items:center;gap:10px;padding:12px 26px;font-size:15px;color:var(--muted);white-space:nowrap}
+.track span::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--dim);transform:rotate(45deg)}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* section heads */
+.sec{padding-top:clamp(100px,13vw,170px)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.h2{font-weight:400;font-size:clamp(34px,5vw,62px);line-height:1.02;letter-spacing:-.04em;color:var(--cream)}
+.lead{margin-top:14px;max-width:520px;font-size:16px;line-height:1.55;color:var(--muted)}
+.skip{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:9px;border:1px solid var(--line2);font-size:13px;color:var(--text);transition:background .2s}
+.skip:hover{background:rgba(244,234,210,.06)}
+
+/* word blur reveal */
+.wb .w{display:inline-block;opacity:0;filter:blur(12px);transform:translateY(.25em);transition:opacity .8s var(--ease),filter .8s var(--ease),transform .8s var(--ease)}
+.wb.in .w{opacity:1;filter:none;transform:none}
+/* wipe reveal */
+.wp{clip-path:inset(0 0 100% 0);transform:translateY(16px);transition:clip-path 1s var(--ease),transform 1s var(--ease)}
+.wp.in{clip-path:inset(0 0 -10% 0);transform:none}
+
+/* products: tabs + detail */
+.prod{display:grid;grid-template-columns:300px 1fr;gap:18px;margin-top:46px;align-items:start}
+.tabs{position:sticky;top:110px;display:grid;gap:6px}
+.tabs .lab{margin:0 0 10px 14px}
+.tab{position:relative;display:flex;justify-content:space-between;align-items:center;width:100%;padding:16px 14px;border-radius:12px;border:1px solid transparent;background:none;color:var(--muted);text-align:left;cursor:pointer;overflow:hidden;transition:background .3s,border-color .3s,color .3s}
+.tab:hover{color:var(--text)}
+.tab.on{background:var(--panel);border-color:var(--line2);color:var(--cream)}
+.tab small{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.tab.on small{color:var(--gold)}
+.tab .bar{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--gold);transform:scaleX(0);transform-origin:left}
+.tab.on .bar{animation:fill var(--dur,7s) linear forwards}
+.prod:hover .tab.on .bar{animation-play-state:paused}
+@keyframes fill{to{transform:scaleX(1)}}
+.panes{position:relative;min-height:520px}
+.pane{position:absolute;inset:0 0 auto 0;display:grid;gap:12px;opacity:0;visibility:hidden;transform:translateX(30px);transition:opacity .55s var(--ease),transform .55s var(--ease),visibility 0s .55s}
+.pane.on{position:relative;opacity:1;visibility:visible;transform:none;transition:opacity .55s var(--ease) .1s,transform .55s var(--ease) .1s}
+.box{border-radius:16px;background:var(--panel);border:1px solid var(--line);padding:24px}
+.ptop{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.ptop h3{font-weight:400;font-size:clamp(22px,2.4vw,28px);letter-spacing:-.02em;color:var(--cream);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.live{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;border:1px solid var(--line2);font-family:var(--mono);font-size:11px;color:var(--muted)}
+.live i{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.ptop p{flex-basis:100%;max-width:560px;margin-top:10px;font-size:15px;line-height:1.55;color:var(--muted)}
+.pgrid{display:grid;grid-template-columns:1fr 1.25fr;gap:12px}
+.big{font-size:clamp(30px,3.4vw,40px);letter-spacing:-.03em;color:var(--cream);margin:10px 0 2px}
+.big.g{color:var(--green)}
+.spec{margin-top:18px;border-top:1px solid var(--line)}
+.spec div{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.spec span{color:var(--muted)}
+.spec b{font-weight:500;color:var(--text);text-align:right}
+/* build visual: pipeline */
+.pipe{display:grid;gap:14px;margin-top:16px}
+.pipe div{display:grid;grid-template-columns:78px 1fr 40px;align-items:center;gap:12px;font-size:13px;color:var(--muted)}
+.pipe em{font-style:normal;font-family:var(--mono);font-size:11.5px;text-align:right;color:var(--dim)}
+.pipe .t{height:6px;border-radius:9px;background:rgba(244,234,210,.06);overflow:hidden}
+.pipe .t i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#8d6f3e,var(--gold));transition:width 1.4s var(--ease)}
+/* agent visual: chat */
+.chat{display:grid;gap:10px;margin-top:16px;min-height:200px;align-content:start}
+.msg{max-width:88%;padding:10px 13px;border-radius:12px;font-size:13.5px;line-height:1.5;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s var(--ease)}
+.msg.in{opacity:1;transform:none}
+.msg.u{justify-self:end;background:rgba(244,234,210,.08);color:var(--text);border-bottom-right-radius:4px}
+.msg.a{background:rgba(226,191,126,.1);border:1px solid rgba(226,191,126,.22);color:var(--cream);border-bottom-left-radius:4px}
+.msg.a small{display:block;margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.typing{display:inline-flex;gap:4px}.typing i{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:tp 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tp{50%{opacity:.2;transform:translateY(-2px)}}
+/* cloud visual: sparkline */
+.spark{width:100%;height:170px;margin-top:10px}
+.spark path.l{fill:none;stroke:var(--green);stroke-width:2;stroke-dasharray:1200;stroke-dashoffset:1200}
+.pane.on .spark path.l{animation:draw 2.4s var(--ease) .3s forwards}
+.spark path.a{fill:url(#sg);opacity:0;transition:opacity 1s 1.4s}
+.pane.on .spark path.a{opacity:1}
+@keyframes draw{to{stroke-dashoffset:0}}
+.svc{display:grid;gap:8px;margin-top:6px}
+.svc div{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.svc div b{font-weight:400;color:var(--green)}
+
+/* next up */
+.next{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,5vw,70px);align-items:center}
+.ncard{position:relative;border-radius:20px;padding:clamp(24px,3.4vw,36px);overflow:hidden;border:1px solid var(--line2);
+  background:radial-gradient(500px 260px at 100% 0%,rgba(226,191,126,.16),transparent 70%),var(--panel)}
+.ncard::after{content:"";position:absolute;top:-50%;left:-30%;width:40%;height:200%;transform:rotate(20deg);
+  background:linear-gradient(90deg,transparent,rgba(244,234,210,.07),transparent);animation:sweep 6s ease-in-out infinite}
+@keyframes sweep{0%,60%{left:-40%}100%{left:130%}}
+.ncard h3{font-weight:400;font-size:clamp(22px,2.6vw,30px);line-height:1.2;letter-spacing:-.02em;color:var(--cream);margin:12px 0 22px;max-width:480px}
+.nfacts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:26px}
+.nfacts div{padding:14px;border-radius:12px;background:rgba(244,234,210,.03);border:1px solid var(--line)}
+.nfacts b{display:block;font-weight:400;font-size:18px;color:var(--cream);margin-top:6px}
+
+/* steps */
+.steps{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px;padding-top:34px}
+.steps .line{position:absolute;top:0;left:0;right:0;height:1px;background:var(--line)}
+.steps .line i{position:absolute;inset:0;background:linear-gradient(90deg,var(--gold),rgba(226,191,126,.2));transform:scaleX(0);transform-origin:left}
+.step .n{position:absolute;top:-39px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:1px solid var(--gold);transition:background .4s,box-shadow .4s}
+.step.lit .n{background:var(--gold);box-shadow:0 0 12px var(--gold)}
+.step{position:relative}
+.step .k{font-family:var(--mono);font-size:12px;color:var(--gold)}
+.step h4{font-weight:500;font-size:18px;color:var(--cream);margin:16px 0 8px}
+.step p{font-size:14.5px;line-height:1.55;color:var(--muted)}
+
+/* how it works: light band */
+.howband{margin:clamp(100px,13vw,170px) calc(50% - 50vw) 0;background:#f1ece1;color:#171613}
+.hin{max-width:1200px;margin:0 auto;padding:clamp(70px,9vw,110px) var(--gut) clamp(70px,9vw,100px)}
+.hhead{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.howband .h2{color:#171613}
+.howband .lead{color:#6b665c;margin-top:0;max-width:420px;font-size:15px}
+.howband .lead a{color:#171613;text-decoration:underline;text-decoration-color:rgba(168,135,63,.6);text-underline-offset:3px;white-space:nowrap}
+.hsteps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,3vw,40px);margin-top:clamp(40px,6vw,70px)}
+.hs{position:relative;padding-top:22px}
+.hs::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:rgba(23,22,19,.14)}
+.hs .bar{position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,#a8873f,#e2bf7e);transform:scaleX(0);transform-origin:left}
+.hs .k{font-family:var(--mono);font-size:12px;color:#a8873f}
+.hs h4{font-weight:500;font-size:20px;letter-spacing:-.01em;margin:6px 0 8px}
+.hs p{font-size:14.5px;line-height:1.6;color:#6b665c;max-width:340px}
+.viz{width:120px;height:64px;margin:18px 0 8px;fill:none;stroke:#171613;stroke-width:1.6;stroke-linecap:round;opacity:.35;transition:opacity .6s}
+.hs.lit .viz{opacity:1}
+.viz .dotf{fill:#a8873f;stroke:none}
+.v1 .pulse{stroke:#a8873f;transform-origin:86px 33px;opacity:0}
+.hs.lit .v1 .pulse{animation:ring 1.8s ease-out infinite}
+@keyframes ring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+.v2 path{stroke-dasharray:120;stroke-dashoffset:120}
+.v2 .out{stroke:#a8873f;stroke-width:2.2}
+.hs.lit .v2 path{animation:dr 1.2s var(--ease) forwards}
+.hs.lit .v2 .in2{animation-delay:.12s}.hs.lit .v2 .in3{animation-delay:.24s}.hs.lit .v2 .out{animation-delay:.7s}
+.v3 .grid{stroke:rgba(23,22,19,.25);stroke-dasharray:3 4}
+.v3 .ln{stroke:#a8873f;stroke-width:2;stroke-dasharray:160;stroke-dashoffset:160}
+.hs.lit .v3 .ln{animation:dr 1.6s var(--ease) forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+
+/* bento diagrams */
+.bento{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-top:50px}
+.bcard{position:relative;padding:24px;border-radius:18px;background:var(--panel);border:1px solid var(--line);overflow:hidden}
+.bcard h4{font-weight:500;font-size:18px;color:var(--cream);margin:20px 0 6px}
+.bcard p{font-size:14px;line-height:1.55;color:var(--muted);max-width:460px}
+.merge{width:100%;height:200px;fill:none}
+.merge .m{stroke-width:1.6}
+.merge .one{stroke:rgba(244,234,210,.25);stroke-width:2}
+.merge .flow{stroke:var(--cream);stroke-width:2.4;stroke-dasharray:26 214;animation:flow 2.4s linear infinite}
+@keyframes flow{from{stroke-dashoffset:240}to{stroke-dashoffset:0}}
+.merge .hub{fill:var(--gold);filter:drop-shadow(0 0 8px var(--gold))}
+.merge text{font-family:var(--mono);font-size:11px;letter-spacing:.14em;fill:var(--dim)}
+.merge .t2{fill:var(--cream)}
+.bars{position:relative;height:200px;display:flex;align-items:flex-end;gap:10px;padding-top:34px}
+.bars i{flex:1;height:0;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#8a6d38,#3a2f1d);transition:height 1.2s var(--ease)}
+.bars.go i{height:calc(var(--h) * .82)}
+.bars i:nth-child(3){transition-delay:.08s}.bars i:nth-child(4){transition-delay:.16s}.bars i:nth-child(5){transition-delay:.24s}.bars i:nth-child(6){transition-delay:.32s}
+.bars i.hit{background:linear-gradient(180deg,#f0d49a,#a8873f)}
+.bars.go i.hit{animation:bump .5s 1.5s var(--ease)}
+@keyframes bump{40%{transform:translateY(-6px)}}
+.cap{position:absolute;left:0;right:0;bottom:82%;border-top:1px dashed rgba(226,191,126,.7)}
+.cap em{position:absolute;right:0;top:-24px;font-style:normal;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:#1a1710;background:var(--gold);border-radius:5px;padding:2px 7px}
+
+/* features */
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:50px;perspective:1000px}
+.feat{position:relative;padding:22px;border-radius:16px;background:var(--panel);border:1px solid var(--line);min-height:250px;display:flex;flex-direction:column;
+  transform-style:preserve-3d;transition:transform .5s var(--ease),border-color .3s}
+.feat:hover{border-color:var(--line2)}
+.feat .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;border:1px solid var(--line2);background:rgba(244,234,210,.04);transform:translateZ(30px)}
+.feat .ic svg{width:19px;height:19px;color:var(--cream)}
+.feat .lab{margin-top:auto;transform:translateZ(20px)}
+.feat h4{font-weight:500;font-size:17px;color:var(--cream);margin:8px 0 6px;transform:translateZ(20px)}
+.feat p{font-size:14px;line-height:1.5;color:var(--muted)}
+.feat .glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(300px circle at var(--gx,50%) var(--gy,50%),rgba(244,234,210,.09),transparent 60%)}
+.feat:hover .glare{opacity:1}
+
+/* security */
+.secu{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,80px);align-items:center}
+.slist{display:grid;margin-top:30px;border-top:1px solid var(--line)}
+.slist>div{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:18px 0;border-bottom:1px solid var(--line)}
+.slist svg{width:20px;height:20px;color:var(--gold);margin-top:2px}
+.slist h4{font-weight:500;font-size:16px;color:var(--cream);margin-bottom:4px}
+.slist p{font-size:14px;line-height:1.5;color:var(--muted)}
+.term{border-radius:16px;border:1px solid var(--line2);background:#0d0d0c;overflow:hidden;box-shadow:0 40px 90px -40px rgba(0,0,0,.95)}
+.term .tb{display:flex;align-items:center;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--dim)}
+.term .tb i{width:9px;height:9px;border-radius:50%;background:#262420}
+.term .tb span{margin-left:8px}
+.term pre{padding:18px 20px;font-family:var(--mono);font-size:13px;line-height:1.85;color:var(--text);white-space:pre-wrap;min-height:270px}
+.term .g{color:var(--dim)}.term .ok{color:var(--green)}.term .y{color:var(--gold)}
+.caret{display:inline-block;width:7px;height:14px;background:var(--cream);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* contact */
+.contact{position:relative;margin-top:clamp(100px,13vw,170px);border-radius:24px;border:1px solid var(--line);overflow:hidden;padding:clamp(26px,5vw,60px);
+  background:radial-gradient(700px 360px at 50% 120%,rgba(226,191,126,.16),transparent 70%),var(--bg2)}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,80px)}
+.cinfo{display:grid;gap:12px;margin-top:28px}
+.cinfo div{display:flex;gap:12px;align-items:center;font-size:14.5px;color:var(--muted)}
+.cinfo svg{width:18px;height:18px;color:var(--gold);flex:none}
+form{display:grid;gap:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+input,textarea{width:100%;height:46px;border:1px solid var(--line2);border-radius:10px;padding:0 14px;font:inherit;font-size:15px;color:var(--cream);background:rgba(244,234,210,.03);transition:border-color .2s,background .2s}
+textarea{height:auto;min-height:130px;padding:12px 14px;resize:vertical}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+input:focus,textarea:focus{outline:none;border-color:rgba(226,191,126,.6);background:rgba(244,234,210,.05)}
+input[aria-invalid=true],textarea[aria-invalid=true]{border-color:#d0704f}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.fmsg{font-size:13.5px;min-height:18px;color:#e08a68}
+.sent{padding:40px 0;text-align:center}
+.sent svg{width:44px;margin:0 auto 18px;color:var(--cream)}
+.sent h3{font-weight:400;font-size:26px;color:var(--cream);margin-bottom:8px}
+.sent p{color:var(--muted)}
+
+/* final CTA box */
+@property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+.final{position:relative;isolation:isolate;margin-top:clamp(100px,13vw,170px);border-radius:20px;padding:clamp(56px,8vw,96px) 24px;text-align:center;overflow:hidden;background:#0e0e0d}
+.final::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;
+  background:conic-gradient(from var(--ang),rgba(226,191,126,.9),rgba(244,234,210,.08) 22%,rgba(150,120,200,.55) 45%,rgba(244,234,210,.08) 68%,rgba(226,191,126,.9));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spinb 9s linear infinite}
+@keyframes spinb{to{--ang:360deg}}
+.final .dots,.final .glow{position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(rgba(244,234,210,.1) 1px,transparent 1.3px);background-size:22px 22px}
+.final .glow{background-image:radial-gradient(rgba(226,191,126,.75) 1.1px,transparent 1.5px);
+  -webkit-mask:radial-gradient(240px circle at var(--fx,50%) var(--fy,40%),#000,transparent 75%);mask:radial-gradient(240px circle at var(--fx,50%) var(--fy,40%),#000,transparent 75%);opacity:.8;transition:opacity .4s}
+.final h2{margin:0 auto}
+.final .lead{margin:16px auto 0;font-size:clamp(16px,1.6vw,19px);color:#bdb5a4}
+.final .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.final .btn{height:46px;padding:0 26px}
+.ftag{font-size:14px;color:var(--muted)}
+.fbrand{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fbrand .brand{margin-right:0}
+
+/* footer */
+footer{margin-top:clamp(80px,10vw,130px);border-top:1px solid var(--line);padding:40px 0 0;overflow:hidden}
+.fgrid{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
+.fcols{display:flex;gap:clamp(30px,6vw,80px);flex-wrap:wrap}
+.fcols h5{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.fcols a{display:block;font-size:14px;color:var(--muted);margin-bottom:10px;transition:color .2s}
+.fcols a:hover{color:var(--cream)}
+.fcols a.soc{position:relative;display:flex;align-items:center;gap:9px}
+.fcols a.soc svg{width:15px;height:15px;flex:none;transition:transform .3s var(--ease)}
+.fcols a.soc:hover svg{transform:translateY(-2px) rotate(-6deg)}
+.fcols a.soc::after{content:"Soon";position:absolute;left:24px;bottom:100%;transform:translateY(4px);opacity:0;pointer-events:none;
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:#1a1710;background:var(--gold);border-radius:5px;padding:2px 6px;transition:opacity .25s,transform .25s}
+.fcols a.soc.show::after{opacity:1;transform:translateY(-2px)}
+.fbot{display:flex;justify-content:space-between;gap:10px;margin-top:46px;font-size:13px;color:var(--dim)}
+.bigword{margin-top:30px;font-size:clamp(80px,23vw,320px);line-height:.78;font-weight:500;letter-spacing:-.065em;text-align:center;user-select:none;
+  background:linear-gradient(180deg,rgba(244,234,210,.16),rgba(244,234,210,0) 88%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  transform:translateY(40%);transition:transform 1.4s var(--ease)}
+.bigword.in{transform:translateY(8%)}
+
+@media (max-width:1100px){.badge{display:none}}
+@media (max-width:980px){
+  .links,.nav .btn{display:none}.burger{display:grid}
+  .nav{width:100%}
+  .stats{grid-template-columns:repeat(2,1fr);margin-top:-40px}
+  .prod{grid-template-columns:1fr}
+  .tabs{position:static;grid-template-columns:repeat(3,1fr)}
+  .tabs .lab{display:none}
+  .tab{flex-direction:column;align-items:flex-start;gap:4px;padding:12px}
+  .panes{min-height:0}
+  .next,.secu,.cgrid{grid-template-columns:1fr}
+  .steps{grid-template-columns:repeat(2,1fr);row-gap:40px}
+  .hsteps{grid-template-columns:1fr;gap:34px}
+  .bento{grid-template-columns:1fr}
+  .feats{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:620px){
+  .pgrid,.two,.nfacts{grid-template-columns:1fr}
+  .tabs{grid-template-columns:1fr}
+  .tab{flex-direction:row;align-items:center}
+  .steps{grid-template-columns:1fr}
+  .feats{grid-template-columns:1fr}
+  .feat{min-height:0}
+  .feat .lab{margin-top:30px}
+  .fbot{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .wb .w,.wp,.stat{opacity:1!important;filter:none!important;transform:none!important;clip-path:none!important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="oxm" maskUnits="userSpaceOnUse" x="6" y="6" width="90" height="80">
+      <path fill="#fff" d="M37 22C42 15 47 12 52 12C58 12 63 15 66 20L88 55C94 64 91 79 76 79L26 79C14 79 9 67 15 57Z"/>
+      <ellipse cx="50" cy="56" rx="23" ry="23.3" fill="#000"/>
+      <path fill="#000" d="M50 56L53 33L68 18L100 0L100 22L72 57Z"/>
+      <circle cx="50" cy="56" r="12.5" fill="#fff"/>
+    </mask>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff8e6"/><stop offset=".45" stop-color="#e9d9b2"/><stop offset=".7" stop-color="#b79a62"/><stop offset="1" stop-color="#f4e6c4"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <animateTransform attributeName="gradientTransform" type="translate" values="-1.2 0;1.2 0;1.2 0" keyTimes="0;.45;1" dur="5s" repeatCount="indefinite"/>
+    </linearGradient>
+    <symbol id="ox" viewBox="6 6 90 80"><rect x="6" y="6" width="90" height="80" fill="currentColor" mask="url(#oxm)"/></symbol>
+    <symbol id="oxMetal" viewBox="6 6 90 80"><rect x="6" y="6" width="90" height="80" fill="url(#metal)" mask="url(#oxm)"/><rect x="6" y="6" width="90" height="80" fill="url(#shine)" mask="url(#oxm)" style="mix-blend-mode:overlay"/></symbol>
+  </defs>
+</svg>
+
+<header class="header">
+  <nav class="nav" aria-label="Main">
+    <a href="/" data-top class="brand" aria-label="Oxely home"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely</a>
+    <div class="links">
+      <a href="#products">Vaults</a>
+      <a href="#how">How it works</a>
+      <a href="#why">Why Oxely</a>
+      <a href="#security">Security</a>
+      <a href="/docs">Docs</a>
+      <a href="#contact">Waitlist</a>
+    </div>
+    <a href="#contact" class="btn btn-cream mag">Join waitlist</a>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><i></i></button>
+  </nav>
+  <a href="/app" class="badge"><span class="dot"></span>Building now <b>Oxely App</b> ↗</a>
+</header>
+<div class="mnav" id="mnav">
+  <a href="#products">Vaults</a><a href="#how">How it works</a><a href="#why">Why Oxely</a><a href="#security">Security</a><a href="/docs">Docs</a><a href="#contact">Waitlist</a>
+</div>
+
+<section class="hero" id="top">
+  <h1 class="wb">Put your crypto to work, calmly</h1>
+  <p class="sub wp">Oxely is building simple on-chain vaults with clear rules, self-custody and every position visible on-chain.</p>
+  <div class="cta wp">
+    <a href="#contact" class="btn btn-cream mag">Join the waitlist <span class="arr">→</span></a>
+    <a href="#how" class="btn btn-ghost mag">How it works</a>
+  </div>
+  <div class="stage" aria-hidden="true">
+    <canvas id="orbit"></canvas>
+    <div class="floor"></div>
+    <div class="mark" id="mark"></div>
+  </div>
+  <div class="wrap" style="padding:0">
+    <div class="stats">
+      <div class="stat"><div class="lab">Vaults</div><div class="num"><span data-count="3">0</span></div><div class="cap">Strategies in development</div></div>
+      <div class="stat"><div class="lab">Custody</div><div class="num">Self</div><div class="cap">Vault shares stay in your wallet</div></div>
+      <div class="stat"><div class="lab">Reporting</div><div class="num">On-chain</div><div class="cap">Every position you can check</div></div>
+      <div class="stat"><div class="lab">Status</div><div class="num">Pre-launch</div><div class="cap">Early access via the waitlist</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="tech" aria-label="What Oxely is about">
+  <div class="lab">Principles behind every vault</div>
+  <div class="row"><div class="track" id="t1"></div></div>
+  <div class="row rev"><div class="track" id="t2"></div></div>
+</div>
+
+<main class="wrap">
+
+  <section class="sec" id="products">
+    <div class="head">
+      <div>
+        <h2 class="h2 wb">Every vault, one clear job.</h2>
+        <p class="lead wp">Each Oxely vault follows a single written strategy with set limits. You hold the vault shares, and every position can be checked on-chain.</p>
+      </div>
+      <a href="#next" class="skip wp">Skip to next section <span>↓</span></a>
+    </div>
+
+    <div class="prod" id="prod">
+      <div class="tabs" role="tablist">
+        <div class="lab">01 / 03</div>
+        <button class="tab on" role="tab" data-i="0"><span>Oxely Stable</span><small>Stablecoins</small><i class="bar"></i></button>
+        <button class="tab" role="tab" data-i="1"><span>Oxely Hedge</span><small>Market-neutral</small><i class="bar"></i></button>
+        <button class="tab" role="tab" data-i="2"><span>Oxely Custom</span><small>For teams</small><i class="bar"></i></button>
+      </div>
+
+      <div class="panes">
+        <!-- Stable -->
+        <div class="pane on" data-p="0">
+          <div class="box ptop">
+            <h3>Oxely Stable <span class="live"><i></i>In development</span></h3>
+            <a href="#contact" class="btn btn-cream mag">Join waitlist</a>
+            <p>A stablecoin vault that spreads deposits across lending markets with strict limits per venue. Built for people who want their dollars to stay dollars.</p>
+          </div>
+          <div class="pgrid">
+            <div class="box">
+              <div class="lab">Target return</div>
+              <div class="big">At launch</div>
+              <div class="lab" style="margin-top:4px">Published with the full strategy</div>
+              <div class="spec">
+                <div><span>Deposit assets</span><b>USDC, USDT (planned)</b></div>
+                <div><span>Risk profile</span><b>Conservative</b></div>
+                <div><span>Custody</span><b>Self-custody</b></div>
+              </div>
+            </div>
+            <div class="box">
+              <div class="lab">Allocation rules · illustrative</div>
+              <div class="pipe" id="pipe">
+                <div>Lending<span class="t"><i data-w="45"></i></span><em>≤45%</em></div>
+                <div>Lending B<span class="t"><i data-w="35"></i></span><em>≤35%</em></div>
+                <div>Reserve<span class="t"><i data-w="15"></i></span><em>≥15%</em></div>
+                <div>Buffer<span class="t"><i data-w="5"></i></span><em>5%</em></div>
+              </div>
+              <p style="margin-top:18px;font-size:12.5px;line-height:1.5;color:var(--dim)">Example limits to show how rules work. Final allocations are published before launch.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hedge -->
+        <div class="pane" data-p="1">
+          <div class="box ptop">
+            <h3>Oxely Hedge <span class="live"><i></i>In research</span></h3>
+            <a href="#contact" class="btn btn-cream mag">Join waitlist</a>
+            <p>A market-neutral vault that aims to earn from funding and price differences while keeping price exposure close to zero.</p>
+          </div>
+          <div class="pgrid">
+            <div class="box">
+              <div class="lab">Price exposure</div>
+              <div class="big">Near zero</div>
+              <div class="lab" style="margin-top:4px">Long and short balanced</div>
+              <div class="spec">
+                <div><span>Approach</span><b>Delta-neutral</b></div>
+                <div><span>Risk profile</span><b>Moderate</b></div>
+                <div><span>Reporting</span><b>On-chain + weekly notes</b></div>
+              </div>
+            </div>
+            <div class="box">
+              <div class="lab">Ask the vault · example</div>
+              <div class="chat" id="chat"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom -->
+        <div class="pane" data-p="2">
+          <div class="box ptop">
+            <h3>Oxely Custom <span class="live"><i></i>By request</span></h3>
+            <a href="#contact" class="btn btn-cream mag">Talk to us</a>
+            <p>Vaults built around a team's own rules: which assets, which limits, and how often to report. For DAOs, treasuries and funds.</p>
+          </div>
+          <div class="pgrid">
+            <div class="box">
+              <div class="lab">Your rules</div>
+              <div class="big g">Your vault</div>
+              <div class="lab" style="margin-top:4px">Set together, enforced on-chain</div>
+              <div class="spec">
+                <div><span>Assets</span><b>Chosen per mandate</b></div>
+                <div><span>Limits</span><b>Written up front</b></div>
+                <div><span>Reporting</span><b>On-chain + custom</b></div>
+              </div>
+            </div>
+            <div class="box">
+              <div class="lab">Example chart · illustrative only</div>
+              <svg class="spark" viewBox="0 0 400 170" preserveAspectRatio="none">
+                <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fcf8a" stop-opacity=".25"/><stop offset="1" stop-color="#9fcf8a" stop-opacity="0"/></linearGradient></defs>
+                <path class="a" d="M0 120 L25 112 L50 118 L75 96 L100 104 L125 88 L150 95 L175 70 L200 82 L225 66 L250 74 L275 58 L300 66 L325 50 L350 58 L375 44 L400 48 L400 170 L0 170Z"/>
+                <path class="l" d="M0 120 L25 112 L50 118 L75 96 L100 104 L125 88 L150 95 L175 70 L200 82 L225 66 L250 74 L275 58 L300 66 L325 50 L350 58 L375 44 L400 48"/>
+              </svg>
+              <div class="svc"><div>Not real data<b>● demo</b></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="next">
+    <div class="next">
+      <div>
+        <h2 class="h2 wb">Coming next.</h2>
+        <p class="lead wp">One app to deposit, follow every position and withdraw, without needing a trading desk.</p>
+      </div>
+      <div class="ncard wp">
+        <div class="lab">In development</div>
+        <h3>The Oxely App: connect a wallet, pick a vault, follow it live.</h3>
+        <a href="/app" class="btn btn-cream mag">See the app <span class="arr">→</span></a>
+        <div class="nfacts">
+          <div><span class="lab">Status</span><b>In development</b></div>
+          <div><span class="lab">Access</span><b>Waitlist first</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="howband" id="how">
+    <div class="hin">
+      <div class="hhead">
+        <h2 class="h2 wb">Clear, start to finish.</h2>
+        <p class="lead wp">How the Oxely App is designed to work once it launches. <a href="/docs#access">Read the full flow →</a></p>
+      </div>
+      <div class="hsteps" id="steps">
+        <div class="hs wp">
+          <i class="bar"></i>
+          <div class="k">01</div>
+          <svg class="viz v1" viewBox="0 0 120 64" aria-hidden="true"><rect x="30" y="16" width="52" height="34" rx="7"/><path d="M30 26h52"/><circle class="pulse" cx="86" cy="33" r="5"/><circle cx="86" cy="33" r="2.6" class="dotf"/></svg>
+          <h4>Connect</h4>
+          <p>Join the waitlist, then connect your own wallet when the app opens. Each vault shows who can use it and its deposit cap.</p>
+        </div>
+        <div class="hs wp">
+          <i class="bar"></i>
+          <div class="k">02</div>
+          <svg class="viz v2" viewBox="0 0 120 64" aria-hidden="true"><path class="in1" d="M6 12C40 12 52 32 76 32"/><path class="in2" d="M6 32H76"/><path class="in3" d="M6 52C40 52 52 32 76 32"/><path class="out" d="M76 32H114"/><circle cx="76" cy="32" r="4" class="dotf"/></svg>
+          <h4>Allocate</h4>
+          <p>Pick a vault and read its strategy, limits and risks on one page. Funds can only go where the written rules allow.</p>
+        </div>
+        <div class="hs wp">
+          <i class="bar"></i>
+          <div class="k">03</div>
+          <svg class="viz v3" viewBox="0 0 120 64" aria-hidden="true"><path class="grid" d="M6 56H114"/><path class="ln" d="M6 46L22 42L36 46L52 34L66 38L80 26L96 30L114 16"/><circle cx="114" cy="16" r="3.4" class="dotf"/></svg>
+          <h4>Follow &amp; withdraw</h4>
+          <p>Track positions on-chain and read plain-language updates. Withdraw by redeeming shares under the vault's published terms.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="why">
+    <h2 class="h2 wb">Complex inside. Simple outside.</h2>
+    <div class="bento">
+      <div class="bcard wp">
+        <svg class="merge" viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="mg1" x1="0" x2="1"><stop offset="0" stop-color="#e2bf7e" stop-opacity=".15"/><stop offset="1" stop-color="#e2bf7e"/></linearGradient>
+            <linearGradient id="mg2" x1="0" x2="1"><stop offset="0" stop-color="#b9a6e6" stop-opacity=".15"/><stop offset="1" stop-color="#b9a6e6"/></linearGradient>
+            <linearGradient id="mg3" x1="0" x2="1"><stop offset="0" stop-color="#9fcf8a" stop-opacity=".15"/><stop offset="1" stop-color="#9fcf8a"/></linearGradient>
+          </defs>
+          <path class="m" stroke="url(#mg1)" d="M0 30C180 30 240 110 360 110"/>
+          <path class="m" stroke="url(#mg2)" d="M0 80C180 80 250 110 360 110"/>
+          <path class="m" stroke="url(#mg3)" d="M0 150C180 150 250 110 360 110"/>
+          <path class="m" stroke="url(#mg1)" d="M0 195C180 195 240 110 360 110"/>
+          <path class="one" d="M360 110H600"/>
+          <path class="flow" d="M360 110H600"/>
+          <circle cx="360" cy="110" r="6" class="hub"/>
+          <text x="8" y="214" class="t1">MANY MARKETS</text>
+          <text x="592" y="96" class="t2" text-anchor="end">ONE VAULT</text>
+        </svg>
+        <h4>Many markets, one vault</h4>
+        <p>Behind each vault, positions may sit across several venues. You hold one share and follow one value.</p>
+      </div>
+      <div class="bcard wp">
+        <div class="bars" id="capbars"><span class="cap"><em>HARD LIMIT</em></span><i style="--h:38%"></i><i style="--h:56%"></i><i style="--h:47%"></i><i style="--h:69%"></i><i style="--h:100%" class="hit"></i></div>
+        <h4>Limits that don't move</h4>
+        <p>Every vault has written caps per venue, set before launch. If a position reaches its limit, it stops there.</p>
+      </div>
+    </div>
+    <div class="feats">
+      <div class="feat wp"><i class="glare"></i><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h2M3 10h18"/></svg></div><div class="lab">Custody</div><h4>Your wallet, your shares</h4><p>Vault shares sit in your own wallet, not in an Oxely account.</p></div>
+      <div class="feat wp"><i class="glare"></i><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><div class="lab">Rules</div><h4>Limits written first</h4><p>Every vault publishes its strategy and limits before it takes a deposit.</p></div>
+      <div class="feat wp"><i class="glare"></i><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="lab">Visibility</div><h4>Open by default</h4><p>Positions are on-chain, so anyone can check them, any time.</p></div>
+      <div class="feat wp"><i class="glare"></i><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg></div><div class="lab">Access</div><h4>No middlemen</h4><p>Connect a wallet and use it yourself, within each vault's terms.</p></div>
+    </div>
+  </section>
+
+  <section class="sec" id="security">
+    <div class="secu">
+      <div>
+        <h2 class="h2 wb">Safety comes before returns.</h2>
+        <p class="lead wp">We would rather launch later than launch unsafe. These are the rules we hold ourselves to.</p>
+        <div class="slist">
+          <div class="wp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><div><h4>Independent audits before launch</h4><p>No vault opens to deposits before its contracts are reviewed by outside auditors.</p></div></div>
+          <div class="wp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><div><h4>Self-custody</h4><p>You keep your keys. Oxely can't move funds out of your wallet.</p></div></div>
+          <div class="wp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg><div><h4>Limits and monitoring</h4><p>Each vault has hard limits per venue and is watched around the clock.</p></div></div>
+        </div>
+      </div>
+      <div class="term wp">
+        <div class="tb"><i></i><i></i><i></i><span>oxely vaults · testnet preview</span></div>
+        <pre id="type"></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="cgrid">
+      <div>
+        <h2 class="h2 wb">Be first in line.</h2>
+        <p class="lead wp">Join the waitlist and we'll let you know as soon as the first Oxely vault is ready, with its full strategy and audit.</p>
+        <div class="cinfo wp">
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>Only launch news, no spam</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Your email stays private</div>
+        </div>
+      </div>
+      <div id="formWrap" class="wp">
+        <form id="cf" action="contact.php" method="post" novalidate>
+          <div class="two">
+            <div><label for="name">Name</label><input id="name" name="name" placeholder="Jane Doe" autocomplete="name" maxlength="120" required></div>
+            <div><label for="email">Email</label><input id="email" name="email" type="email" placeholder="jane@example.com" autocomplete="email" maxlength="160" required></div>
+          </div>
+          <div><label for="company">Wallet or team <span style="color:var(--dim)">(optional)</span></label><input id="company" name="company" placeholder="Individual, DAO, fund…" maxlength="120"></div>
+          <div><label for="message">Anything you'd like us to know? <span style="color:var(--dim)">(optional)</span></label><textarea id="message" name="message" placeholder="Which vault interests you most?" maxlength="5000"></textarea></div>
+          <div class="hp" aria-hidden="true"><input name="fax" tabindex="-1" autocomplete="off"></div>
+          <button class="btn btn-cream" type="submit" id="send">Join the waitlist <span class="arr">→</span></button>
+          <div class="fmsg" id="fmsg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="dots"></div><div class="glow"></div>
+    <h2 class="h2 wb">Grow with Oxely.</h2>
+    <p class="lead wp">Pick a vault, keep your keys, and follow every move on-chain.</p>
+    <div class="row wp">
+      <a href="#contact" class="btn btn-cream mag">Join the waitlist</a>
+      <a href="#contact" class="btn btn-ghost mag">Talk to the team</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div class="fbrand"><a href="/" data-top class="brand"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely</a><span class="ftag">On-chain vaults. Clear rules.</span></div>
+      <div class="fcols">
+        <div><h5>Social</h5>
+          <a href="#" class="soc" data-soon aria-label="Oxely on X (Twitter), coming soon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.75 3h3.07l-6.71 7.67L22 21h-6.18l-4.84-6.33L5.44 21H2.37l7.18-8.2L2 3h6.34l4.37 5.78L17.75 3Zm-1.08 16.17h1.7L7.4 4.73H5.58l11.09 14.44Z"/></svg>Twitter</a>
+          <a href="#" class="soc" data-soon aria-label="Oxely on GitHub, coming soon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84c.85 0 1.7.11 2.5.34 1.9-1.29 2.74-1.02 2.74-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>GitHub</a>
+        </div>
+        <div><h5>Vaults</h5><a href="#products">Oxely Stable</a><a href="#products">Oxely Hedge</a><a href="#products">Oxely Custom</a><a href="/app">Oxely App</a></div>
+        <div><h5>Oxely</h5><a href="#how">How it works</a><a href="#why">Why Oxely</a><a href="#security">Security</a><a href="/docs">Docs</a><a href="#contact">Waitlist</a></div>
+      </div>
+    </div>
+    <p style="margin-top:40px;max-width:760px;font-size:12.5px;line-height:1.6;color:var(--dim)">Oxely is in development and is not yet accepting deposits. Nothing on this website is financial advice or an offer to buy or sell any asset. Digital assets are risky and can lose value. Charts and allocations shown are illustrative only.</p>
+    <div class="fbot" style="margin-top:24px"><span>© <span id="yr"></span> Oxely. All rights reserved.</span><span class="mono">oxely.xyz</span></div>
+    <div class="bigword" id="bigword" aria-hidden="true">OXELY</div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  $('#yr').textContent = new Date().getFullYear();
+
+  /* mobile menu */
+  const burger = $('#burger'), mnav = $('#mnav');
+  burger.addEventListener('click', () => burger.setAttribute('aria-expanded', mnav.classList.toggle('open')));
+  $$('#mnav a').forEach(a => a.addEventListener('click', () => mnav.classList.remove('open')));
+
+  /* split headings into words for the blur reveal */
+  $$('.wb').forEach(el => {
+    el.innerHTML = el.textContent.trim().split(/\s+/).map((w, i) => `<span class="w" style="transition-delay:${i * 70}ms">${w}</span>`).join(' ');
+  });
+
+  /* one observer for every reveal */
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target; el.classList.add('in'); io.unobserve(el);
+    $$('[data-count]', el).forEach(countUp);
+  }), { threshold: .15, rootMargin: '0px 0px -5% 0px' });
+  $$('.wb,.bigword').forEach(el => io.observe(el));
+  /* .wp starts fully clipped, which IntersectionObserver reports as invisible,
+     so check its box position on scroll instead */
+  let wps = $$('.wp');
+  wps.forEach(el => {
+    const sibs = [...el.parentElement.children].filter(c => c.classList.contains('wp'));
+    el.style.transitionDelay = Math.min(sibs.indexOf(el) * 90, 360) + 'ms';
+  });
+  function wpCheck() {
+    const lim = innerHeight * .94;
+    wps = wps.filter(el => { if (el.getBoundingClientRect().top < lim) { el.classList.add('in'); return false; } return true; });
+    if (!wps.length) removeEventListener('scroll', wpCheck);
+  }
+  addEventListener('scroll', wpCheck, { passive: true });
+  addEventListener('resize', wpCheck);
+  requestAnimationFrame(wpCheck);
+  $$('.stat').forEach((el, i) => { el.style.transitionDelay = (300 + i * 110) + 'ms'; io.observe(el); });
+  function countUp(el) {
+    const end = +el.dataset.count, t0 = performance.now();
+    (function s(now) { const p = clamp((now - t0) / 1400); el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(s); })(t0);
+  }
+
+  /* hero: metallic 3D logo */
+  const mark = $('#mark'), L = 26;
+  for (let i = 0; i < L; i++) {
+    const t = i / (L - 1), front = i === L - 1;
+    const c = `rgb(${Math.round(26 + t * 110)},${Math.round(24 + t * 96)},${Math.round(20 + t * 70)})`;
+    mark.insertAdjacentHTML('beforeend', `<svg viewBox="6 6 90 80" style="transform:translateZ(${(i - L / 2) * 1.5}px);color:${c}"><use href="${front ? '#oxMetal' : '#ox'}"/></svg>`);
+  }
+  let mx = 0, my = 0, cx = 0, cy = 0;
+  if (fine) addEventListener('pointermove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
+
+  /* hero: orbiting particle ring */
+  const cv = $('#orbit'), ctx = cv.getContext('2d'), DPR = Math.min(devicePixelRatio || 1, 2);
+  const N = innerWidth < 700 ? 90 : 170;
+  const parts = Array.from({ length: N }, (_, i) => ({ a: (i / N) * Math.PI * 2, r: .9 + Math.random() * .25, s: .6 + Math.random() * .8, z: Math.random() * 6.28 }));
+  function size() { cv.width = cv.offsetWidth * DPR; cv.height = cv.offsetHeight * DPR; }
+  size(); addEventListener('resize', size);
+  const stage = $('.stage');
+  let stageVisible = true;
+  new IntersectionObserver(([e]) => stageVisible = e.isIntersecting).observe(stage);
+
+  (function loop(t) {
+    cx += (mx - cx) * .05; cy += (my - cy) * .05;
+    const sp = clamp(scrollY / innerHeight);
+    if (stageVisible) {
+      const ry = reduce ? -20 : Math.sin(t / 3000) * 30 + cx * 36 + sp * 40;
+      const rx = reduce ? 12 : 14 + Math.sin(t / 3800) * 5 - cy * 20 + sp * 18;
+      mark.style.transform = `translateY(${sp * -30}px) rotateX(${rx}deg) rotateY(${ry}deg) scale(${1 - sp * .12})`;
+
+      const W = cv.width, H = cv.height, ox = W / 2, oy = H * .52, R = Math.min(W * .34, H * .62);
+      ctx.clearRect(0, 0, W, H);
+      const rot = reduce ? 0 : t / 9000;
+      for (const p of parts) {
+        const a = p.a + rot * p.s, x = Math.cos(a) * R * p.r, z = Math.sin(a);
+        const y = z * R * p.r * .22 + Math.sin(t / 900 + p.z) * 3 * DPR;
+        const depth = (z + 1) / 2;
+        ctx.globalAlpha = .12 + depth * .7;
+        ctx.fillStyle = depth > .55 ? '#f4ead2' : '#e2bf7e';
+        ctx.beginPath(); ctx.arc(ox + x, oy + y, (0.6 + depth * 1.3) * DPR, 0, 7); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    requestAnimationFrame(loop);
+  })(0);
+
+  /* tech marquee rows */
+  const techA = ['Self-custody', 'On-chain reporting', 'Written strategies', 'Hard limits', 'Stablecoin vaults', 'Independent audits'];
+  const techB = ['Market-neutral', 'Risk first', 'Plain-language updates', 'No hidden fees', 'Open positions', 'Withdraw on published terms'];
+  const fillRow = (el, list) => { const h = list.map(w => `<span>${w}</span>`).join(''); el.innerHTML = h + h + h + h; };
+  fillRow($('#t1'), techA); fillRow($('#t2'), techB);
+
+  /* products: auto-advancing tabs */
+  const tabs = $$('.tab'), panes = $$('.pane'), DUR = 7000;
+  const lab = $('.tabs .lab');
+  let cur = 0, timer = null, paused = false, started = false;
+  function show(i) {
+    cur = i;
+    tabs.forEach((t, k) => { t.classList.toggle('on', k === i); t.setAttribute('aria-selected', k === i); });
+    panes.forEach((p, k) => p.classList.toggle('on', k === i));
+    lab.textContent = `0${i + 1} / 03`;
+    tabs[i].querySelector('.bar').style.animation = 'none'; void tabs[i].offsetWidth; tabs[i].querySelector('.bar').style.animation = '';
+    if (i === 0) runPipe(); if (i === 1) runChat();
+    schedule();
+  }
+  function schedule() {
+    clearTimeout(timer);
+    if (reduce) return;
+    timer = setTimeout(function tick() { if (paused) { timer = setTimeout(tick, 400); return; } show((cur + 1) % tabs.length); }, DUR);
+  }
+  tabs.forEach(t => t.addEventListener('click', () => show(+t.dataset.i)));
+  const prod = $('#prod');
+  prod.addEventListener('mouseenter', () => paused = true);
+  prod.addEventListener('mouseleave', () => paused = false);
+  new IntersectionObserver(([e]) => { if (e.isIntersecting && !started) { started = true; show(0); } }, { threshold: .3 }).observe(prod);
+
+  function runPipe() {
+    $$('#pipe i').forEach((b, k) => { b.style.width = '0'; setTimeout(() => b.style.width = b.dataset.w + '%', 150 + k * 220); });
+  }
+  let chatRun = 0;
+  function runChat() {
+    const box = $('#chat'), id = ++chatRun; box.innerHTML = '';
+    const add = (cls, html) => { const m = document.createElement('div'); m.className = 'msg ' + cls; m.innerHTML = html; box.appendChild(m); requestAnimationFrame(() => m.classList.add('in')); return m; };
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    (async () => {
+      add('u', 'What happens if the market drops 20%?'); await wait(700); if (id !== chatRun) return;
+      const ty = add('a', '<span class="typing"><i></i><i></i><i></i></span>'); await wait(1300); if (id !== chatRun) return;
+      ty.innerHTML = 'The vault holds a long and a short of the same size, so a price drop is <b>mostly offset</b>. Funding costs and fees still apply.<small>From the vault strategy notes</small>';
+      await wait(1200); if (id !== chatRun) return;
+      add('u', 'Where can I check the positions?'); await wait(700); if (id !== chatRun) return;
+      add('a', 'On-chain, any time. The app will link each position for you.');
+    })();
+  }
+
+  /* how it works: each step's top line fills in turn as you scroll */
+  const steps = $('#steps'), stepEls = $$('.hs', steps);
+  function stepsFx() {
+    const r = steps.getBoundingClientRect(), p = reduce ? 1 : clamp((innerHeight * .9 - r.top) / (innerHeight * .6));
+    stepEls.forEach((s, i) => {
+      const local = clamp(p * stepEls.length - i);
+      s.querySelector('.bar').style.transform = `scaleX(${local})`;
+      s.classList.toggle('lit', local > .98);
+    });
+  }
+  addEventListener('scroll', stepsFx, { passive: true }); stepsFx();
+
+  /* hard-limit bars grow when the card comes into view */
+  const capbars = $('#capbars');
+  new IntersectionObserver(([e], o) => { if (e.isIntersecting) { capbars.classList.add('go'); o.disconnect(); } }, { threshold: .4 }).observe(capbars);
+
+  /* feature cards: 3D tilt + glare */
+  if (fine) $$('.feat').forEach(c => {
+    c.addEventListener('pointermove', e => {
+      const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      c.style.transform = `rotateY(${(x - .5) * 14}deg) rotateX(${(.5 - y) * 14}deg)`;
+      c.style.setProperty('--gx', x * 100 + '%'); c.style.setProperty('--gy', y * 100 + '%');
+    });
+    c.addEventListener('pointerleave', () => c.style.transform = '');
+  });
+
+  /* final CTA: dots light up around the pointer */
+  const fin = $('#final');
+  if (fine) fin.addEventListener('pointermove', e => {
+    const r = fin.getBoundingClientRect();
+    fin.style.setProperty('--fx', (e.clientX - r.left) + 'px'); fin.style.setProperty('--fy', (e.clientY - r.top) + 'px');
+  });
+  else if (!reduce) (function drift(t) {
+    fin.style.setProperty('--fx', (50 + Math.sin(t / 2200) * 30) + '%'); fin.style.setProperty('--fy', (45 + Math.cos(t / 2800) * 20) + '%');
+    requestAnimationFrame(drift);
+  })(0);
+
+  /* logo links: scroll to the top and keep the address as plain https://oxely.xyz/ */
+  const cleanUrl = () => history.replaceState(null, '', location.pathname + location.search);
+  if (location.hash === '#top') cleanUrl();
+  $$('[data-top]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); mnav.classList.remove('open');
+    scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    if (location.hash) cleanUrl();
+  }));
+
+  /* social links without an account yet: show "Soon" instead of jumping to the top */
+  $$('[data-soon]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); a.classList.add('show'); clearTimeout(a._t); a._t = setTimeout(() => a.classList.remove('show'), 1600);
+  }));
+
+  /* magnetic buttons */
+  if (fine && !reduce) $$('.mag').forEach(b => {
+    b.addEventListener('pointermove', e => {
+      const r = b.getBoundingClientRect();
+      b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .22}px,${(e.clientY - r.top - r.height / 2) * .3}px)`;
+    });
+    b.addEventListener('pointerleave', () => b.style.transform = '');
+  });
+
+  /* typing terminal */
+  const lines = [
+    '<span class="g">$</span> oxely vaults --network testnet',
+    '  <span class="ok">●</span> oxely-stable      <span class="g">testing</span>',
+    '  <span class="ok">●</span> oxely-hedge       <span class="g">research</span>',
+    '<span class="g">$</span> oxely limits --check oxely-stable',
+    '  <span class="ok">✓</span> Per-venue limits enforced',
+    '  <span class="ok">✓</span> Reserve above minimum',
+    '<span class="g">$</span> oxely audit --status',
+    '  <span class="y">…</span> Audit scheduled before mainnet',
+    '<span class="y">Not live yet. Join the waitlist.</span>'
+  ];
+  const plain = lines.map(l => l.replace(/<[^>]+>/g, '')), pre = $('#type');
+  const tio = new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting) return; tio.disconnect();
+    if (reduce) { pre.innerHTML = lines.join('\n'); return; }
+    let li = 0, ci = 0;
+    (function step() {
+      if (li >= lines.length) { pre.innerHTML = lines.join('\n') + '\n<span class="caret"></span>'; return; }
+      ci += 2;
+      const done = lines.slice(0, li).join('\n') + (li ? '\n' : '');
+      if (ci >= plain[li].length) { li++; ci = 0; pre.innerHTML = lines.slice(0, li).join('\n') + '<span class="caret"></span>'; setTimeout(step, 170); }
+      else { pre.innerHTML = done + plain[li].slice(0, ci).replace(/</g, '&lt;') + '<span class="caret"></span>'; setTimeout(step, 18); }
+    })();
+  }, { threshold: .4 });
+  tio.observe(pre);
+
+  /* contact form */
+  const form = $('#cf'), send = $('#send'), fmsg = $('#fmsg');
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); fmsg.textContent = '';
+    let bad = null;
+    [['name', v => v], ['email', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)]].forEach(([id, ok]) => {
+      const el = $('#' + id), good = !!ok(el.value.trim()); el.setAttribute('aria-invalid', !good); if (!good && !bad) bad = el;
+    });
+    if (bad) { fmsg.textContent = 'Please fill in your name and a valid email.'; bad.focus(); return; }
+    send.disabled = true; send.textContent = 'Joining…';
+    try {
+      const r = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) throw new Error(j.error || 'Something went wrong.');
+      $('#formWrap').innerHTML = '<div class="sent"><svg viewBox="6 6 90 80"><use href="#ox"/></svg><h3>You\'re on the list</h3><p>Thanks! We\'ll email you when the first Oxely vault is ready.</p></div>';
+    } catch (err) {
+      fmsg.textContent = err.message + ' Please try again.';
+      send.disabled = false; send.innerHTML = 'Join the waitlist <span class="arr">→</span>';
+    }
+  });
+})();
+</script>
+</body>
+</html>

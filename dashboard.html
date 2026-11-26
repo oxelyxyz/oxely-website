@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oxely App · Vaults (preview)</title>
+<meta name="description" content="Preview of the Oxely App vault dashboard. The app is in development and not yet accepting deposits.">
+<meta name="theme-color" content="#0b0b0a">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b0a;--bg2:#121211;--panel:#161614;--panel2:#1c1b18;--cream:#f4ead2;--text:#e6dfcd;--muted:#8d877b;--dim:#57534b;
+  --line:rgba(244,234,210,.08);--line2:rgba(244,234,210,.15);--gold:#e2bf7e;--green:#9fcf8a;--violet:#b9a6e6;
+  --sans:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);--gut:clamp(16px,3vw,32px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden;background:radial-gradient(900px 400px at 50% -120px,rgba(226,191,126,.08),transparent 70%),var(--bg)}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+button{font:inherit;color:inherit}
+.lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 var(--gut)}
+
+/* preview banner */
+.banner{display:flex;align-items:center;justify-content:center;gap:10px;padding:9px var(--gut);font-size:12.5px;color:#1a1710;background:linear-gradient(90deg,#d9b56f,#f0d9a6,#d9b56f);background-size:200% 100%;animation:sheen 8s linear infinite;text-align:center}
+.banner b{font-weight:600}
+.banner a{text-decoration:underline;text-underline-offset:2px}
+@keyframes sheen{to{background-position:-200% 0}}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:40;background:rgba(11,11,10,.8);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top .wrap{height:62px;display:flex;align-items:center;gap:6px}
+.brand{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--cream);margin-right:22px}
+.brand svg{width:20px;height:auto}
+.tl{font-size:13.5px;color:var(--muted);padding:7px 11px;border-radius:7px;transition:color .2s,background .2s}
+.tl:hover{color:var(--cream)}
+.tl.on{color:var(--cream);background:rgba(244,234,210,.06)}
+.tright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.net{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:9px;border:1px solid var(--line2);font-size:12.5px;color:var(--text);background:none;cursor:pointer}
+.net i{width:8px;height:8px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px var(--violet)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border-radius:9px;font-size:13px;font-weight:500;white-space:nowrap;border:1px solid transparent;cursor:pointer;transition:background .2s,border-color .2s,opacity .2s}
+.btn-cream{background:var(--cream);color:#121110}.btn-cream:hover{background:#fff}
+.btn-ghost{border-color:var(--line2);background:transparent;color:var(--text)}.btn-ghost:hover{background:rgba(244,234,210,.06)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:36px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(22,22,20,.6)}
+.stat{padding:26px 22px;text-align:center;opacity:0;transform:translateY(14px);animation:up .8s var(--ease) forwards}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat:nth-child(2){animation-delay:.1s}.stat:nth-child(3){animation-delay:.2s}
+@keyframes up{to{opacity:1;transform:none}}
+.stat .v{font-size:clamp(26px,3.2vw,38px);font-weight:400;letter-spacing:-.03em;color:var(--cream);margin:10px 0 6px}
+.stat small{font-size:12.5px;color:var(--muted)}
+.shim{display:inline-block;border-radius:8px;color:transparent!important;background:linear-gradient(90deg,rgba(244,234,210,.05) 0%,rgba(244,234,210,.14) 50%,rgba(244,234,210,.05) 100%);background-size:200% 100%;animation:shim 1.8s linear infinite}
+@keyframes shim{to{background-position:-200% 0}}
+.soon{font-size:clamp(20px,2.2vw,26px)!important;color:var(--muted)!important}
+
+/* filters */
+.bar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:40px;flex-wrap:wrap}
+.filters{display:flex;gap:4px;padding:4px;border-radius:11px;border:1px solid var(--line);background:var(--bg2)}
+.filters button{height:32px;padding:0 14px;border-radius:8px;border:0;background:none;font-size:13px;color:var(--muted);cursor:pointer;transition:background .25s,color .25s}
+.filters button.on{background:var(--panel2);color:var(--cream);box-shadow:inset 0 0 0 1px var(--line2)}
+.search{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);min-width:240px}
+.search svg{width:15px;color:var(--dim)}
+.search input{flex:1;border:0;background:none;outline:none;font:inherit;font-size:13.5px;color:var(--cream)}
+.search input::placeholder{color:var(--dim)}
+
+/* groups + cards */
+.group{margin-top:34px}
+.group>.lab{margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.vault{position:relative;display:block;width:100%;font:inherit;color:inherit;text-align:left;border-radius:16px;border:1px solid var(--line);background:var(--panel);padding:20px;cursor:pointer;overflow:hidden;
+  opacity:0;transform:translateY(18px) scale(.985);transition:border-color .3s,transform .5s var(--ease),opacity .5s var(--ease),background .3s}
+.vault.in{opacity:1;transform:none}
+.vault:hover{border-color:var(--line2);background:var(--panel2)}
+.vault::before{content:"";position:absolute;left:0;top:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent,var(--gold)),transparent);opacity:.6}
+.vault.hide{display:none}
+.vh{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.vh h3{font-weight:500;font-size:18px;color:var(--cream);letter-spacing:-.01em}
+.vh p{font-size:12.5px;color:var(--muted);margin-top:4px}
+.badge{flex:none;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;border:1px solid var(--line2);font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+.badge i{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.badge.r i{background:var(--violet)}.badge.c i{background:var(--green)}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.metrics div{text-align:center}
+.metrics b{display:block;font-weight:400;font-size:20px;color:var(--cream);letter-spacing:-.02em;min-height:26px}
+.metrics small{font-size:11.5px;color:var(--muted)}
+.metrics .shim{width:58px;height:22px;margin:2px auto}
+.vf{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:7px;background:rgba(244,234,210,.05);font-size:11.5px;color:var(--text)}
+.chip i{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#6aa0e8,#2d6cc0)}
+.chip i.t{background:linear-gradient(135deg,#5fd0a8,#2a9d79)}
+.chip i.e{background:linear-gradient(135deg,#a9b2c8,#6c7591)}
+.open{font-size:12.5px;color:var(--cream);display:flex;align-items:center;gap:6px}
+.open span{transition:transform .3s var(--ease)}
+.vault:hover .open span{transform:translateX(4px)}
+
+/* upcoming banner */
+.up{position:relative;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:20px;align-items:center;border-radius:18px;border:1px solid var(--line2);padding:26px;overflow:hidden;
+  background:radial-gradient(500px 220px at 0% 0%,rgba(185,166,230,.14),transparent 70%),linear-gradient(120deg,#17161a,#121211)}
+.up .who{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:10px}
+.up .who svg{width:16px;color:var(--cream)}
+.up h3{font-weight:400;font-size:clamp(20px,2.4vw,26px);letter-spacing:-.02em;color:var(--cream);margin-bottom:16px}
+.up .k{text-align:right}
+.up .k b{display:block;font-weight:400;font-size:clamp(28px,3vw,38px);letter-spacing:-.03em;color:var(--violet)}
+.up .k small{font-size:12px;color:var(--muted)}
+
+/* custom card */
+.custom{display:flex;justify-content:space-between;align-items:center;gap:20px;border-radius:16px;border:1px dashed var(--line2);padding:22px;flex-wrap:wrap}
+.custom h3{font-weight:500;font-size:18px;color:var(--cream)}
+.custom p{font-size:13.5px;color:var(--muted);margin-top:6px;max-width:560px;line-height:1.5}
+
+.empty{display:none;text-align:center;padding:50px 0;color:var(--muted);font-size:14px}
+footer{margin-top:70px;border-top:1px solid var(--line);padding:24px 0 36px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--dim)}
+footer p{max-width:720px;line-height:1.6}
+footer nav{display:flex;gap:16px}
+footer nav a:hover{color:var(--cream)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .35s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:61;width:min(460px,100vw);background:#121211;border-left:1px solid var(--line2);transform:translateX(105%);transition:transform .5s var(--ease);display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:22px;border-bottom:1px solid var(--line)}
+.dh h2{font-weight:500;font-size:22px;color:var(--cream)}
+.dh p{font-size:13px;color:var(--muted);margin-top:4px}
+.x{width:34px;height:34px;border-radius:9px;border:1px solid var(--line2);background:none;cursor:pointer;display:grid;place-items:center;flex:none}
+.x svg{width:14px}
+.db{flex:1;overflow:auto;padding:22px;display:grid;gap:18px;align-content:start}
+.db h4{font-family:var(--mono);font-size:10.5px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.db p{font-size:14px;line-height:1.6;color:var(--text)}
+.kv{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.kv div{display:flex;justify-content:space-between;gap:12px;padding:11px 14px;font-size:13px}
+.kv div+div{border-top:1px solid var(--line)}
+.kv span{color:var(--muted)}.kv b{font-weight:500;color:var(--cream);text-align:right}
+.risks{display:grid;gap:8px}
+.risks li{list-style:none;display:flex;gap:10px;font-size:13.5px;color:var(--text);line-height:1.5}
+.risks li::before{content:"!";flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:600;color:#1a1710;background:var(--gold);margin-top:1px}
+.df{padding:18px 22px;border-top:1px solid var(--line);display:grid;gap:10px}
+.df .btn{height:44px;width:100%}
+.df small{text-align:center;font-size:12px;color:var(--muted)}
+
+/* modal */
+.modal{position:fixed;left:50%;top:50%;z-index:62;width:min(420px,calc(100vw - 32px));transform:translate(-50%,-46%) scale(.96);opacity:0;pointer-events:none;
+  background:#141412;border:1px solid var(--line2);border-radius:18px;padding:26px;transition:opacity .3s,transform .4s var(--ease);box-shadow:0 40px 100px -30px #000}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.modal .mi{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:rgba(226,191,126,.1);border:1px solid rgba(226,191,126,.3);margin-bottom:18px}
+.modal .mi svg{width:28px;color:var(--gold)}
+.modal h3{font-weight:500;font-size:20px;color:var(--cream)}
+.modal p{font-size:14px;line-height:1.55;color:var(--muted);margin:8px 0 18px}
+.modal form{display:grid;gap:10px}
+.modal input{height:44px;border:1px solid var(--line2);border-radius:10px;padding:0 14px;font:inherit;font-size:14.5px;color:var(--cream);background:rgba(244,234,210,.03);outline:none}
+.modal input:focus{border-color:rgba(226,191,126,.6)}
+.modal input[aria-invalid=true]{border-color:#d0704f}
+.modal .btn{height:44px}
+.modal .msg{font-size:13px;min-height:16px;color:#e08a68}
+.modal .x{position:absolute;top:16px;right:16px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+@media (max-width:860px){
+  .tl:not(.on){display:none}
+  .net span{display:none}
+  .grid{grid-template-columns:1fr}
+  .up{grid-template-columns:1fr 1fr}
+  .up>div:first-child{grid-column:1/-1}
+  .up .k{text-align:left}
+}
+@media (max-width:560px){
+  .brand{margin-right:6px;letter-spacing:.24em}
+  .tright .btn-ghost{display:none}
+  .stats{grid-template-columns:1fr}
+  .stat+.stat{border-left:0;border-top:1px solid var(--line)}
+  .search{min-width:0;width:100%}
+  .filters{width:100%}.filters button{flex:1}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.vault,.stat{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="oxm" maskUnits="userSpaceOnUse" x="6" y="6" width="90" height="80">
+      <path fill="#fff" d="M37 22C42 15 47 12 52 12C58 12 63 15 66 20L88 55C94 64 91 79 76 79L26 79C14 79 9 67 15 57Z"/>
+      <ellipse cx="50" cy="56" rx="23" ry="23.3" fill="#000"/>
+      <path fill="#000" d="M50 56L53 33L68 18L100 0L100 22L72 57Z"/>
+      <circle cx="50" cy="56" r="12.5" fill="#fff"/>
+    </mask>
+    <symbol id="ox" viewBox="6 6 90 80"><rect x="6" y="6" width="90" height="80" fill="currentColor" mask="url(#oxm)"/></symbol>
+  </defs>
+</svg>
+
+<div class="banner"><b>Preview</b> · The Oxely App is in development and does not accept deposits yet. <a href="#" data-wl>Join the waitlist</a></div>
+
+<header class="top">
+  <div class="wrap">
+    <a href="./" class="brand" aria-label="Oxely home"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely</a>
+    <a href="dashboard.html" class="tl on">Vaults</a>
+    <a href="/app" class="tl">About the app</a>
+    <a href="/docs" class="tl">Docs</a>
+    <a href="./#security" class="tl">Security</a>
+    <div class="tright">
+      <button class="net" id="net" title="Networks are announced at launch"><i></i><span>Testnet preview</span></button>
+      <button class="btn btn-ghost" data-wl>Join waitlist</button>
+      <button class="btn btn-cream" id="connect">Connect wallet</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="stats" aria-label="Overview">
+    <div class="stat"><div class="lab">Total value locked</div><div class="v soon"><span class="shim">Opens at launch</span></div><small>No deposits yet · preview</small></div>
+    <div class="stat"><div class="lab">Vaults &amp; strategies</div><div class="v">3</div><small>0 live · 2 in development · 1 by request</small></div>
+    <div class="stat"><div class="lab">Target returns</div><div class="v soon"><span class="shim">Published at launch</span></div><small>With each vault's full strategy</small></div>
+  </section>
+
+  <div class="bar">
+    <div class="filters" role="tablist">
+      <button class="on" data-f="all">All</button>
+      <button data-f="dev">In development</button>
+      <button data-f="custom">Custom</button>
+    </div>
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Search vaults" autocomplete="off"></label>
+  </div>
+
+  <section class="group" data-g>
+    <div class="lab">Flagship vaults</div>
+    <div class="grid">
+      <button class="vault" data-v="stable" data-k="dev" style="--accent:var(--gold)">
+        <div class="vh"><div><h3>Oxely Stable</h3><p>Stablecoin lending across venues · strict per-venue limits</p></div><span class="badge"><i></i>In development</span></div>
+        <div class="metrics">
+          <div><b><span class="shim"></span></b><small>Target APY</small></div>
+          <div><b>Conservative</b><small>Risk profile</small></div>
+          <div><b><span class="shim"></span></b><small>TVL</small></div>
+        </div>
+        <div class="vf"><div class="chips"><span class="chip"><i></i>USDC</span><span class="chip"><i class="t"></i>USDT</span></div><span class="open">View vault <span>→</span></span></div>
+      </button>
+      <button class="vault" data-v="hedge" data-k="dev" style="--accent:var(--violet)">
+        <div class="vh"><div><h3>Oxely Hedge</h3><p>Market-neutral · earns from funding, price exposure near zero</p></div><span class="badge r"><i></i>In research</span></div>
+        <div class="metrics">
+          <div><b><span class="shim"></span></b><small>Target APY</small></div>
+          <div><b>Moderate</b><small>Risk profile</small></div>
+          <div><b>Weekly</b><small>Strategy notes</small></div>
+        </div>
+        <div class="vf"><div class="chips"><span class="chip"><i></i>USDC</span><span class="chip"><i class="e"></i>Long + short</span></div><span class="open">View vault <span>→</span></span></div>
+      </button>
+    </div>
+  </section>
+
+  <section class="group" data-g>
+    <div class="lab">Upcoming strategies</div>
+    <div class="up">
+      <div>
+        <div class="who"><svg viewBox="6 6 90 80"><use href="#ox"/></svg>Oxely research</div>
+        <h3>A savings vault for non-dollar stablecoins.</h3>
+        <button class="btn btn-cream" data-wl>Register interest</button>
+      </div>
+      <div class="k"><b>Soon</b><small>Target return, at launch</small></div>
+      <div class="k"><b>Daily</b><small>Liquidity objective</small></div>
+    </div>
+  </section>
+
+  <section class="group" data-g>
+    <div class="lab">Custom vaults</div>
+    <div class="grid">
+      <button class="vault" data-v="custom" data-k="custom" style="--accent:var(--green)">
+        <div class="vh"><div><h3>Oxely Custom</h3><p>Built around your own mandate · DAOs, treasuries, funds</p></div><span class="badge c"><i></i>By request</span></div>
+        <div class="metrics">
+          <div><b>Yours</b><small>Assets</small></div>
+          <div><b>Written</b><small>Limits</small></div>
+          <div><b>On-chain</b><small>Reporting</small></div>
+        </div>
+        <div class="vf"><div class="chips"><span class="chip"><i class="e"></i>Per mandate</span></div><span class="open">View vault <span>→</span></span></div>
+      </button>
+      <div class="custom">
+        <div><h3>Need something different?</h3><p>Tell us your assets, limits and reporting needs, and we'll design a vault around them on the same infrastructure.</p></div>
+        <a href="./#contact" class="btn btn-ghost">Talk to the team</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="empty" id="empty">No vaults match your search.</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Preview only. The Oxely App is in development; no vault is live and no deposits are accepted. Figures marked as pending will be published with each vault's strategy and audit. Nothing here is financial advice. Digital assets are risky and can lose value.</p>
+    <nav><a href="./">Home</a><a href="/app">About the app</a><a href="./#contact">Waitlist</a></nav>
+  </div>
+</footer>
+
+<!-- vault drawer -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" role="dialog" aria-labelledby="dTitle">
+  <div class="dh"><div><h2 id="dTitle"></h2><p id="dSub"></p></div><button class="x" id="dClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="db">
+    <div><h4>Strategy</h4><p id="dStrat"></p></div>
+    <div><h4>Details</h4><div class="kv" id="dKv"></div></div>
+    <div><h4>Main risks</h4><ul class="risks" id="dRisk"></ul></div>
+  </div>
+  <div class="df">
+    <button class="btn btn-cream" disabled>Deposit · available at launch</button>
+    <button class="btn btn-ghost" data-wl>Join the waitlist for this vault</button>
+    <small>Nothing can be deposited during the preview.</small>
+  </div>
+</aside>
+
+<!-- wallet / waitlist modal -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <button class="x" id="mClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div id="mBody">
+    <div class="mi"><svg viewBox="6 6 90 80"><use href="#ox"/></svg></div>
+    <h3 id="mTitle">The app isn't live yet</h3>
+    <p id="mText">Wallet connections open at launch. Leave your email and we'll tell you the moment the first vault is ready, with its full strategy and audit.</p>
+    <form id="wl" action="contact.php" method="post" novalidate>
+      <input id="wName" name="name" placeholder="Your name" autocomplete="name" maxlength="120">
+      <input id="wEmail" name="email" type="email" placeholder="you@example.com" autocomplete="email" maxlength="160">
+      <input type="hidden" name="company" id="wVault" value="">
+      <input type="hidden" name="message" value="Joined from the app preview">
+      <div class="hp" aria-hidden="true"><input name="fax" tabindex="-1" autocomplete="off"></div>
+      <button class="btn btn-cream" type="submit" id="wSend">Join the waitlist</button>
+      <div class="msg" id="wMsg" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+  /* cards fade up one after another */
+  $$('.vault').forEach((v, i) => setTimeout(() => v.classList.add('in'), 250 + i * 110));
+
+  /* filters + search */
+  let filter = 'all';
+  function apply() {
+    const q = $('#q').value.trim().toLowerCase();
+    let shown = 0;
+    $$('.vault').forEach(v => {
+      const ok = (filter === 'all' || v.dataset.k === filter) && (!q || v.textContent.toLowerCase().includes(q));
+      v.classList.toggle('hide', !ok); if (ok) shown++;
+    });
+    $$('[data-g]').forEach(g => {
+      const has = $$('.vault', g).some(v => !v.classList.contains('hide'));
+      const isUp = !$('.vault', g);
+      g.style.display = isUp ? (filter === 'all' && !q ? '' : 'none') : (has ? '' : 'none');
+    });
+    $('#empty').style.display = shown ? 'none' : 'block';
+  }
+  $$('.filters button').forEach(b => b.addEventListener('click', () => {
+    $$('.filters button').forEach(x => x.classList.toggle('on', x === b)); filter = b.dataset.f; apply();
+  }));
+  $('#q').addEventListener('input', apply);
+
+  /* vault details */
+  const V = {
+    stable: { t: 'Oxely Stable', s: 'Stablecoins · In development',
+      st: 'Deposits are spread across several lending markets. No single venue may hold more than a set share, and a reserve is always kept for withdrawals. The final venue list and limits are published before launch.',
+      kv: [['Deposit assets', 'USDC, USDT (planned)'], ['Risk profile', 'Conservative'], ['Target APY', 'Published at launch'], ['Withdrawals', 'Terms published at launch'], ['Audit', 'Required before launch'], ['Status', 'In development']],
+      r: ['Smart contract risk in the vault or the lending markets it uses.', 'A stablecoin could lose its peg.', 'Lending rates change, so returns can go down.'] },
+    hedge: { t: 'Oxely Hedge', s: 'Market-neutral · In research',
+      st: 'The vault holds a long and a short position of similar size, aiming to earn from funding payments and price differences while keeping overall price exposure close to zero.',
+      kv: [['Deposit asset', 'USDC (planned)'], ['Risk profile', 'Moderate'], ['Target APY', 'Published at launch'], ['Reporting', 'On-chain + weekly notes'], ['Audit', 'Required before launch'], ['Status', 'In research']],
+      r: ['Funding rates can turn negative and cost the vault money.', 'Exchange or venue risk if a trading venue fails.', 'Hedges are never perfect; sharp moves can cause losses.'] },
+    custom: { t: 'Oxely Custom', s: 'For teams · By request',
+      st: 'A vault designed around a team\'s own rules: which assets, which limits and how often to report. It runs on the same infrastructure as Oxely\'s flagship vaults.',
+      kv: [['Who it is for', 'DAOs, treasuries, funds'], ['Assets', 'Chosen per mandate'], ['Limits', 'Written up front'], ['Reporting', 'On-chain + custom'], ['Status', 'By request']],
+      r: ['Risks depend on the assets and venues chosen in each mandate.', 'Smart contract risk applies to every on-chain vault.'] }
+  };
+  const drawer = $('#drawer'), scrim = $('#scrim'), modal = $('#modal');
+  let current = '';
+  function openVault(id) {
+    const d = V[id]; current = d.t;
+    $('#dTitle').textContent = d.t; $('#dSub').textContent = d.s; $('#dStrat').textContent = d.st;
+    $('#dKv').innerHTML = d.kv.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('');
+    $('#dRisk').innerHTML = d.r.map(x => `<li>${x}</li>`).join('');
+    drawer.classList.add('on'); scrim.classList.add('on'); drawer.setAttribute('aria-hidden', 'false');
+    $('#dClose').focus();
+  }
+  function closeAll() {
+    drawer.classList.remove('on'); modal.classList.remove('on'); scrim.classList.remove('on'); drawer.setAttribute('aria-hidden', 'true');
+  }
+  $$('.vault').forEach(v => v.addEventListener('click', () => openVault(v.dataset.v)));
+  $('#dClose').addEventListener('click', closeAll);
+  scrim.addEventListener('click', closeAll);
+  addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+  /* connect wallet + waitlist modal */
+  function openModal(fromWallet) {
+    if (!$('#wl')) { drawer.classList.remove('on'); modal.classList.add('on'); scrim.classList.add('on'); return; }
+    $('#mTitle').textContent = fromWallet ? 'The app isn\'t live yet' : 'Join the waitlist';
+    $('#mText').textContent = fromWallet
+      ? 'Wallet connections open at launch. Leave your email and we\'ll tell you the moment the first vault is ready, with its full strategy and audit.'
+      : 'Get early access when the Oxely App opens. We only email about the launch.';
+    $('#wVault').value = drawer.classList.contains('on') ? current : '';
+    drawer.classList.remove('on'); modal.classList.add('on'); scrim.classList.add('on');
+    setTimeout(() => $('#wName') && $('#wName').focus(), 200);
+  }
+  $('#connect').addEventListener('click', () => openModal(true));
+  document.addEventListener('click', e => { const t = e.target.closest('[data-wl]'); if (t) { e.preventDefault(); openModal(false); } });
+  $('#mClose').addEventListener('click', closeAll);
+
+  const form = $('#wl');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = $('#wName'), email = $('#wEmail'), msg = $('#wMsg'), send = $('#wSend');
+    const okN = !!name.value.trim(), okE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+    name.setAttribute('aria-invalid', !okN); email.setAttribute('aria-invalid', !okE);
+    if (!okN || !okE) { msg.textContent = 'Please enter your name and a valid email.'; (okN ? email : name).focus(); return; }
+    send.disabled = true; send.textContent = 'Joining…'; msg.textContent = '';
+    try {
+      const r = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) throw new Error(j.error || 'Something went wrong.');
+      $('#mBody').innerHTML = '<div class="mi"><svg viewBox="6 6 90 80"><use href="#ox"/></svg></div><h3>You\'re on the list</h3><p>Thanks! We\'ll email you when the first Oxely vault is ready.</p><button class="btn btn-cream" style="width:100%" onclick="document.getElementById(\'mClose\').click()">Done</button>';
+    } catch (err) {
+      msg.textContent = err.message + ' Please try again.'; send.disabled = false; send.textContent = 'Join the waitlist';
+    }
+  });
+})();
+</script>
+</body>
+</html>
